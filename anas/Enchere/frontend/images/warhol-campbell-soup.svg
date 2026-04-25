@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <!-- Fond blanc pop -->
+  <rect width="400" height="520" fill="#fff"/>
+  <!-- Bande rouge haut -->
+  <rect x="60" y="60" width="280" height="95" fill="#c8102e"/>
+  <!-- Bande crème milieu -->
+  <rect x="60" y="155" width="280" height="170" fill="#f5e6c8"/>
+  <!-- Bande rouge bas -->
+  <rect x="60" y="325" width="280" height="130" fill="#c8102e"/>
+  <!-- Bordure boîte extérieure -->
+  <rect x="60" y="60" width="280" height="395" fill="none" stroke="#888" stroke-width="2"/>
+  <!-- Cercle central gold -->
+  <ellipse cx="200" cy="245" rx="95" ry="20" fill="#f0c040" stroke="#c8a000" stroke-width="1"/>
+  <!-- Médaillon -->
+  <ellipse cx="200" cy="245" rx="85" ry="15" fill="#f5c832"/>
+  <text x="200" y="250" font-family="Times New Roman, serif" font-size="11" fill="#8b0000" text-anchor="middle" font-weight="bold">CONDENSED</text>
+  <!-- Logo Campbell's -->
+  <text x="200" y="110" font-family="Times New Roman, serif" font-size="28" fill="#f5e6c8" text-anchor="middle" font-weight="bold" font-style="italic">Campbell's</text>
+  <!-- Ligne décorative -->
+  <line x1="80" y1="130" x2="320" y2="130" stroke="#f5e6c8" stroke-width="1.5"/>
+  <text x="200" y="148" font-family="Arial, sans-serif" font-size="9" fill="#f5e6c8" text-anchor="middle" letter-spacing="4">C O N D E N S E D</text>
+  <!-- TOMATO SOUP -->
+  <text x="200" y="300" font-family="Arial Black, sans-serif" font-size="30" fill="#c8102e" text-anchor="middle" font-weight="900">TOMATO</text>
+  <text x="200" y="335" font-family="Arial Black, sans-serif" font-size="22" fill="#c8102e" text-anchor="middle" font-weight="900">SOUP</text>
+  <!-- Bas can: texte -->
+  <text x="200" y="400" font-family="Arial, sans-serif" font-size="9" fill="#f5e6c8" text-anchor="middle">NET WT 10¾ OZ (305g)</text>
+  <!-- Haut/bas couvercle -->
+  <ellipse cx="200" cy="60" rx="140" ry="18" fill="#c0c0c0" stroke="#999" stroke-width="1"/>
+  <ellipse cx="200" cy="60" rx="130" ry="14" fill="#d8d8d8"/>
+  <ellipse cx="200" cy="455" rx="140" ry="18" fill="#c0c0c0" stroke="#999" stroke-width="1"/>
+  <ellipse cx="200" cy="455" rx="130" ry="14" fill="#d8d8d8"/>
+  <!-- Reflet métallique -->
+  <rect x="310" y="65" width="18" height="385" fill="rgba(255,255,255,0.18)" rx="3"/>
+  <!-- Signature -->
+  <text x="390" y="515" font-family="Arial, sans-serif" font-size="10" fill="#999" text-anchor="end" font-style="italic">A. Warhol, 1962</text>
+</svg>

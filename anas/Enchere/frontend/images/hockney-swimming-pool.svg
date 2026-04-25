@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#87ceeb"/>
+      <stop offset="100%" stop-color="#d4efff"/>
+    </linearGradient>
+    <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a8fd1"/>
+      <stop offset="100%" stop-color="#0d5fa0"/>
+    </linearGradient>
+    <linearGradient id="boardGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e8e0d0"/>
+      <stop offset="100%" stop-color="#f5f0e8"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="520" fill="url(#skyGrad)"/>
+  <!-- Sol / carrelage autour piscine -->
+  <rect x="0" y="310" width="400" height="210" fill="#f5e8c8"/>
+  <!-- Lignes carrelage -->
+  <line x1="0" y1="340" x2="400" y2="340" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="0" y1="370" x2="400" y2="370" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="0" y1="400" x2="400" y2="400" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="0" y1="430" x2="400" y2="430" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="0" y1="460" x2="400" y2="460" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="0" y1="490" x2="400" y2="490" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="50" y1="310" x2="50" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="100" y1="310" x2="100" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="150" y1="310" x2="150" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="200" y1="310" x2="200" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="250" y1="310" x2="250" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="300" y1="310" x2="300" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <line x1="350" y1="310" x2="350" y2="520" stroke="#e0d0a0" stroke-width="1"/>
+  <!-- Piscine -->
+  <rect x="20" y="180" width="360" height="140" fill="url(#waterGrad)" rx="3"/>
+  <!-- Reflets ondulés de l'eau -->
+  <path d="M30 215 C80 205 130 225 180 215 C230 205 280 225 370 215" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2.5"/>
+  <path d="M25 240 C70 228 120 248 170 235 C220 222 275 245 375 235" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+  <path d="M30 265 C85 252 140 272 200 260 C260 248 315 268 375 258" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  <path d="M25 290 C75 278 130 298 185 285 C240 272 295 292 375 282" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+  <!-- Ombre sous eau -->
+  <ellipse cx="200" cy="310" rx="180" ry="8" fill="#0a4a80" opacity="0.4"/>
+  <!-- Rebord piscine -->
+  <rect x="15" y="175" width="370" height="12" fill="#e8e0d0" rx="2"/>
+  <rect x="15" y="315" width="370" height="8" fill="#e8e0d0" rx="2"/>
+  <rect x="15" y="175" width="8" height="148" fill="#e8e0d0" rx="2"/>
+  <rect x="377" y="175" width="8" height="148" fill="#e8e0d0" rx="2"/>
+  <!-- Palmiers silhouettes -->
+  <rect x="355" y="80" width="8" height="100" fill="#5a3a10" rx="2"/>
+  <ellipse cx="359" cy="85" rx="28" ry="18" fill="#2d6e1a" transform="rotate(-15,359,85)"/>
+  <ellipse cx="359" cy="80" rx="24" ry="14" fill="#3a8a22" transform="rotate(10,359,80)"/>
+  <ellipse cx="359" cy="78" rx="20" ry="12" fill="#4aaa2a" transform="rotate(-5,359,78)"/>
+  <!-- Palmier gauche -->
+  <rect x="32" y="90" width="7" height="90" fill="#5a3a10" rx="2"/>
+  <ellipse cx="35" cy="95" rx="25" ry="16" fill="#2d6e1a" transform="rotate(12,35,95)"/>
+  <ellipse cx="35" cy="90" rx="22" ry="13" fill="#3a8a22" transform="rotate(-8,35,90)"/>
+  <!-- Plongeoir -->
+  <rect x="155" y="155" width="6" height="30" fill="#c8a830"/>
+  <rect x="155" y="155" width="90" height="8" rx="3" fill="url(#boardGrad)" stroke="#c8a830" stroke-width="1"/>
+  <!-- Personnage plongeant (silhouette) -->
+  <ellipse cx="245" cy="152" rx="10" ry="10" fill="#e8c090"/>
+  <path d="M245 162 L235 148 L255 138" fill="none" stroke="#e8c090" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Soleil -->
+  <circle cx="330" cy="65" r="32" fill="#FFD700" opacity="0.9"/>
+  <circle cx="330" cy="65" r="26" fill="#FFEC5A"/>
+  <!-- Signature Hockney -->
+  <text x="380" y="515" font-family="Arial, sans-serif" font-size="11" fill="#888" text-anchor="end" font-style="italic">D. Hockney, 1967</text>
+  <text x="20" y="515" font-family="Arial, sans-serif" font-size="9" fill="#aaa" letter-spacing="1">A BIGGER SPLASH</text>
+</svg>

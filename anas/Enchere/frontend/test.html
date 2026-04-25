@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEV.MODE // BLIND.AUCTION</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* Styles spécifiques au mode test */
+    html, body { height: 100%; overflow: hidden; }
+    .test-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+    .test-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.6rem 1rem;
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid var(--border);
+    }
+    .test-header h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .test-header .muted { font-size: 0.8rem; }
+    .test-header .actions { display: flex; gap: 0.5rem; }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 6px;
+      padding: 6px;
+      background: #0b1220;
+      height: 100%;
+      min-height: 0;
+    }
+    .test-tile {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--bg-card);
+      min-height: 0;
+    }
+    .tile-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.3rem 0.7rem;
+      background: #1f2937;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .tile-head .who { display: flex; align-items: center; gap: 0.4rem; }
+    .tile-head .reload {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 6px;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .tile-head .reload:hover { color: var(--text); }
+
+    .test-tile iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: var(--bg);
+      display: block;
+    }
+
+    /* Indicateurs colorés par rôle */
+    .pill {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+    .pill-gm { background: #fbbf24; }
+    .pill-p1 { background: #60a5fa; }
+    .pill-p2 { background: #34d399; }
+    .pill-p3 { background: #f472b6; }
+  </style>
+</head>
+<body>
+  <div class="test-shell">
+    <header class="test-header">
+      <div>
+        <h1>▣ DEV.MODE — 1 ONGLET / 4 RÔLES</h1>
+        <p class="muted">
+          Chaque cadre est un vrai client (sa propre socket). Démarrez la partie
+          depuis la case MJ, puis estimez depuis les 3 joueurs. Si quelque chose
+          coince, utilisez « ⟲ TOUT RECHARGER ».
+        </p>
+      </div>
+      <div class="actions">
+        <button id="reloadAll" class="btn btn-secondary">⟲ TOUT RECHARGER</button>
+        <a href="/" class="btn btn-ghost">← LOBBY</a>
+      </div>
+    </header>
+
+    <div class="test-grid">
+      <div class="test-tile">
+        <div class="tile-head">
+          <span class="who"><span class="pill pill-gm"></span><strong>⚙ COMMISSAIRE</strong> — MJ</span>
+          <button class="reload" data-target="f-gm">↻</button>
+        </div>
+        <iframe id="f-gm" title="MJ" src="/?role=gm&pseudo=MJ"></iframe>
+      </div>
+
+      <div class="test-tile">
+        <div class="tile-head">
+          <span class="who"><span class="pill pill-p1"></span><strong>★ ESTIM. 01</strong> — Alice</span>
+          <button class="reload" data-target="f-p1">↻</button>
+        </div>
+        <iframe id="f-p1" title="Alice" src="/?role=player&pseudo=Alice"></iframe>
+      </div>
+
+      <div class="test-tile">
+        <div class="tile-head">
+          <span class="who"><span class="pill pill-p2"></span><strong>★ ESTIM. 02</strong> — Bob</span>
+          <button class="reload" data-target="f-p2">↻</button>
+        </div>
+        <iframe id="f-p2" title="Bob" src="/?role=player&pseudo=Bob"></iframe>
+      </div>
+
+      <div class="test-tile">
+        <div class="tile-head">
+          <span class="who"><span class="pill pill-p3"></span><strong>★ ESTIM. 03</strong> — Charlie</span>
+          <button class="reload" data-target="f-p3">↻</button>
+        </div>
+        <iframe id="f-p3" title="Charlie" src="/?role=player&pseudo=Charlie"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Actions ---
+    document.getElementById('reloadAll').addEventListener('click', () => {
+      ['f-gm', 'f-p1', 'f-p2', 'f-p3'].forEach(id => reloadIframe(id));
+    });
+    document.querySelectorAll('.reload').forEach(btn => {
+      btn.addEventListener('click', () => reloadIframe(btn.dataset.target));
+    });
+    function reloadIframe(id) {
+      const f = document.getElementById(id);
+      // On réassigne le src pour forcer une reconnexion socket propre.
+      const src = f.getAttribute('src');
+      f.setAttribute('src', 'about:blank');
+      setTimeout(() => f.setAttribute('src', src), 40);
+    }
+  </script>
+</body>
+</html>

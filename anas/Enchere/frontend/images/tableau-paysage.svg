@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#166534"/>
+  <!-- cadre -->
+  <rect x="60" y="50" width="280" height="180" fill="#78350f" stroke="#fde68a" stroke-width="4"/>
+  <rect x="75" y="65" width="250" height="150" fill="#bae6fd"/>
+  <!-- paysage -->
+  <path d="M 75 180 L 130 140 L 170 165 L 220 120 L 270 155 L 325 150 L 325 215 L 75 215 Z"
+        fill="#4d7c0f"/>
+  <path d="M 75 215 L 325 215 L 325 165 L 260 145 L 210 170 L 160 155 L 110 175 L 75 170 Z"
+        fill="#365314" opacity="0.7"/>
+  <circle cx="280" cy="100" r="14" fill="#fef08a"/>
+  <text x="200" y="270" text-anchor="middle" font-family="Georgia, serif"
+        font-size="20" font-weight="700" fill="#ecfccb">Tableau de paysage</text>
+</svg>

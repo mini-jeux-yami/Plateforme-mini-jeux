@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0c1e4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#g1)"/>
+  <g transform="translate(200 165)" fill="#fef3c7" stroke="#fbbf24" stroke-width="2">
+    <path d="M -35 -75 L 35 -75 L 40 -60 L 20 -50 Q 50 -10 50 30 Q 50 70 0 75 Q -50 70 -50 30 Q -50 -10 -20 -50 L -40 -60 Z"/>
+    <path d="M -30 -35 Q 0 -25 30 -35" fill="none" stroke="#1e3a8a" stroke-width="3"/>
+    <circle cx="-15" cy="10" r="6" fill="#1e3a8a"/>
+    <circle cx="15" cy="10" r="6" fill="#1e3a8a"/>
+  </g>
+  <text x="200" y="270" text-anchor="middle" font-family="Georgia, serif"
+        font-size="22" font-weight="700" fill="#fef3c7">Vase Ming</text>
+</svg>

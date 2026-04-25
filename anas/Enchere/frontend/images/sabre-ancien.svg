@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1f5f9"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="#374151"/>
+  <g transform="translate(200 150) rotate(-20)">
+    <!-- lame -->
+    <path d="M -140 0 Q -50 -12 130 -6 L 130 6 Q -50 12 -140 0 Z"
+          fill="url(#blade)" stroke="#475569" stroke-width="1"/>
+    <!-- garde -->
+    <rect x="130" y="-18" width="8" height="36" fill="#78350f"/>
+    <!-- poignée -->
+    <rect x="138" y="-10" width="50" height="20" fill="#3f1d06" stroke="#78350f" stroke-width="1"/>
+    <!-- pommeau -->
+    <circle cx="192" cy="0" r="10" fill="#fde68a" stroke="#78350f" stroke-width="1"/>
+  </g>
+  <text x="200" y="275" text-anchor="middle" font-family="Georgia, serif"
+        font-size="20" font-weight="700" fill="#e5e7eb">Sabre ancien</text>
+</svg>

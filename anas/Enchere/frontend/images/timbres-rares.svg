@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#9f1239"/>
+  <g transform="translate(70 60)">
+    <!-- 3 timbres perforés -->
+    <g fill="#fef3c7" stroke="#7f1d1d" stroke-width="1">
+      <rect x="0" y="0" width="80" height="100" rx="4"/>
+      <rect x="90" y="0" width="80" height="100" rx="4"/>
+      <rect x="180" y="0" width="80" height="100" rx="4"/>
+      <rect x="45" y="70" width="80" height="100" rx="4"/>
+      <rect x="135" y="70" width="80" height="100" rx="4"/>
+    </g>
+    <g fill="#7f1d1d" font-family="Georgia, serif" font-size="11" text-anchor="middle">
+      <text x="40" y="55">1887</text>
+      <text x="130" y="55">Poste</text>
+      <text x="220" y="55">Rare</text>
+      <text x="85" y="125">€</text>
+      <text x="175" y="125">✦</text>
+    </g>
+  </g>
+  <text x="200" y="270" text-anchor="middle" font-family="Georgia, serif"
+        font-size="20" font-weight="700" fill="#fef3c7">Timbres rares</text>
+</svg>

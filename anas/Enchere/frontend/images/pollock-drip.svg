@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <rect width="400" height="520" fill="#0a0a0a"/>
+  <!-- Fond canvas sombre -->
+  <rect x="15" y="15" width="370" height="490" fill="#111"/>
+  <!-- Drips et éclaboussures style Pollock -->
+  <!-- Couche 1 : blanc -->
+  <path d="M40 120 C80 110 120 180 160 150 C200 120 240 200 280 160 C320 120 360 180 380 140" fill="none" stroke="#e8e8e8" stroke-width="2.5" opacity="0.9"/>
+  <path d="M20 200 C60 190 100 250 140 220 C180 190 220 260 260 230 C300 200 340 250 380 210" fill="none" stroke="#e8e8e8" stroke-width="1.8" opacity="0.85"/>
+  <path d="M30 320 C90 300 150 370 210 340 C270 310 330 380 380 350" fill="none" stroke="#e8e8e8" stroke-width="3" opacity="0.7"/>
+  <!-- Couche 2 : jaune vif -->
+  <path d="M20 80 C70 140 130 70 190 130 C250 190 310 80 380 100" fill="none" stroke="#f0d000" stroke-width="3.5" opacity="0.85"/>
+  <path d="M15 380 C75 360 135 420 195 400 C255 380 315 440 380 410" fill="none" stroke="#f0d000" stroke-width="2.5" opacity="0.7"/>
+  <circle cx="120" cy="75" r="6" fill="#f0d000" opacity="0.9"/>
+  <circle cx="280" cy="420" r="8" fill="#f0d000" opacity="0.8"/>
+  <circle cx="350" cy="95" r="4" fill="#f0d000" opacity="0.85"/>
+  <!-- Couche 3 : rouge -->
+  <path d="M60 50 C100 100 140 60 180 110 C220 160 260 90 300 140 C340 190 370 130 390 160" fill="none" stroke="#cc2200" stroke-width="4" opacity="0.8"/>
+  <path d="M15 460 C65 440 115 490 165 470 C215 450 265 500 315 475 C345 462 370 490 390 480" fill="none" stroke="#cc2200" stroke-width="2.5" opacity="0.75"/>
+  <circle cx="65" cy="50" r="9" fill="#cc2200" opacity="0.9"/>
+  <circle cx="188" cy="112" r="5" fill="#cc2200" opacity="0.8"/>
+  <!-- Couche 4 : bleu -->
+  <path d="M30 290 C90 270 150 330 210 300 C270 270 330 340 390 300" fill="none" stroke="#0044cc" stroke-width="3" opacity="0.75"/>
+  <path d="M25 170 C80 155 135 210 190 185 C245 160 300 215 360 185" fill="none" stroke="#0044cc" stroke-width="2" opacity="0.7"/>
+  <circle cx="320" cy="290" r="7" fill="#0044cc" opacity="0.85"/>
+  <!-- Éclaboussures aléatoires -->
+  <circle cx="200" cy="260" r="12" fill="#e8e8e8" opacity="0.5"/>
+  <circle cx="90" cy="350" r="5" fill="#f0d000" opacity="0.7"/>
+  <circle cx="310" cy="200" r="4" fill="#cc2200" opacity="0.8"/>
+  <circle cx="150" cy="450" r="6" fill="#e8e8e8" opacity="0.6"/>
+  <circle cx="370" cy="340" r="3" fill="#0044cc" opacity="0.9"/>
+  <circle cx="55" cy="240" r="5" fill="#f0d000" opacity="0.65"/>
+  <!-- Drips verticaux -->
+  <path d="M105 80 L102 120 L108 155 L103 180" fill="none" stroke="#e8e8e8" stroke-width="1.5" opacity="0.7"/>
+  <path d="M295 140 L292 185 L298 210" fill="none" stroke="#f0d000" stroke-width="2" opacity="0.75"/>
+  <path d="M210 390 L207 430 L213 460" fill="none" stroke="#cc2200" stroke-width="1.8" opacity="0.7"/>
+  <!-- Signature -->
+  <text x="365" y="510" font-family="'Brush Script MT', cursive, Arial" font-size="13" fill="#e8e8e8" text-anchor="end" opacity="0.8" font-style="italic">J.Pollock 1950</text>
+  <!-- Titre bas -->
+  <text x="20" y="510" font-family="Arial, sans-serif" font-size="9" fill="#888" letter-spacing="2">NUMBER 31</text>
+</svg>

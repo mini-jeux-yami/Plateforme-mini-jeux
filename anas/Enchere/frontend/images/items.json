@@ -1,0 +1,92 @@
+{
+  "_doc": "Manifeste des objets. training:true = manche d'entrainement (toujours en premier, points remis a zero apres).",
+  "vase-ming.svg": {
+    "name": "Vase Ming — XIVe siècle",
+    "price": 4200,
+    "training": true
+  },
+  "banan-scotché-au-mur.jpg": {
+    "name": "Comedian — Banane scotchée au mur",
+    "price": 120000
+  },
+  "Dracaufeu-psa-10-1er-gen.webp": {
+    "name": "Dracaufeu PSA 10 — 1re Génération",
+    "price": 420000
+  },
+  "Dali-et-le-surréalisme.png": {
+    "name": "Lithographie Dalí — Le Surréalisme",
+    "price": 95000
+  },
+  "air-des-alpes-suisse.jpg": {
+    "name": "Air des Alpes Suisses — Art conceptuel",
+    "price": 80000
+  },
+  "brique-lego-en-or.png": {
+    "name": "Brique Lego en Or Massif 18 carats",
+    "price": 14000
+  },
+  "carte-draceufeu-psa-10-moderne.png": {
+    "name": "Dracaufeu PSA 10 — Série Moderne",
+    "price": 3800
+  },
+  "dent-de-dinausore-fossilisé.webp": {
+    "name": "Dent de T-Rex Fossilisée",
+    "price": 2400
+  },
+  "eau-volcanique.jpg": {
+    "name": "Eau Volcanique — Source islandaise (1L)",
+    "price": 320
+  },
+  "lego-star-wars-etoile-de-la-mort.png": {
+    "name": "Lego Star Wars — Étoile de la Mort (2008)",
+    "price": 4500
+  },
+  "morceau-de-lune.png": {
+    "name": "Morceau de Lune — Météorite lunaire",
+    "price": 38500
+  },
+  "méteorite-Siemchan.png": {
+    "name": "Météorite Seymchan — Pallassite",
+    "price": 9200
+  },
+  "toile-blanche-d'artiste.webp": {
+    "name": "Toile Blanche — Lucio Fontana (Concetto Spaziale)",
+    "price": 18000
+  },
+  "vrai-crâne-humain.jpg": {
+    "name": "Crâne Humain Antique — XIXe siècle",
+    "price": 5500
+  },
+  "banksy-girl-balloon.svg": {
+    "name": "Girl with Balloon — Banksy",
+    "price": 27000
+  },
+  "warhol-marilyn.svg": {
+    "name": "Marilyn Monroe — Andy Warhol",
+    "price": 185000
+  },
+  "warhol-campbell-soup.svg": {
+    "name": "Campbell's Soup Can — Andy Warhol",
+    "price": 54000
+  },
+  "mondrian-composition.svg": {
+    "name": "Composition II — Piet Mondrian",
+    "price": 340000
+  },
+  "magritte-pipe.svg": {
+    "name": "La Trahison des Images — René Magritte",
+    "price": 22000
+  },
+  "basquiat-skull.svg": {
+    "name": "Untitled Skull — Jean-Michel Basquiat",
+    "price": 65000
+  },
+  "pollock-drip.svg": {
+    "name": "Number 31 — Jackson Pollock",
+    "price": 48000
+  },
+  "hockney-swimming-pool.svg": {
+    "name": "A Bigger Splash — David Hockney",
+    "price": 75000
+  }
+}

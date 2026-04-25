@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <rect width="400" height="520" fill="#f8f4e8"/>
+  <!-- Cadre bois style musée -->
+  <rect x="25" y="25" width="350" height="470" fill="#d4a843"/>
+  <rect x="32" y="32" width="336" height="456" fill="#c09030"/>
+  <rect x="38" y="38" width="324" height="444" fill="#e8c870"/>
+  <rect x="44" y="44" width="312" height="432" fill="white"/>
+  <!-- Composition Mondrian — grilles noires -->
+  <!-- Blocs de couleur -->
+  <rect x="44" y="44" width="130" height="175" fill="#e8192c"/>
+  <rect x="326" y="44" width="30" height="120" fill="#002fa7"/>
+  <rect x="44" y="376" width="90" height="100" fill="#ffd700"/>
+  <rect x="270" y="340" width="86" height="136" fill="#e8192c"/>
+  <rect x="44" y="220" width="60" height="155" fill="#002fa7"/>
+  <!-- Lignes noires épaisses verticales -->
+  <line x1="174" y1="44" x2="174" y2="476" stroke="#111" stroke-width="8"/>
+  <line x1="270" y1="44" x2="270" y2="476" stroke="#111" stroke-width="8"/>
+  <line x1="326" y1="44" x2="326" y2="476" stroke="#111" stroke-width="8"/>
+  <line x1="104" y1="219" x2="104" y2="476" stroke="#111" stroke-width="8"/>
+  <!-- Lignes noires épaisses horizontales -->
+  <line x1="44" y1="219" x2="356" y2="219" stroke="#111" stroke-width="8"/>
+  <line x1="44" y1="340" x2="356" y2="340" stroke="#111" stroke-width="8"/>
+  <line x1="44" y1="164" x2="174" y2="164" stroke="#111" stroke-width="8"/>
+  <line x1="270" y1="120" x2="356" y2="120" stroke="#111" stroke-width="8"/>
+  <line x1="44" y1="375" x2="104" y2="375" stroke="#111" stroke-width="8"/>
+  <!-- Bordure externe noire -->
+  <rect x="44" y="44" width="312" height="432" fill="none" stroke="#111" stroke-width="8"/>
+  <!-- Titre en bas du cadre -->
+  <text x="200" y="513" font-family="Georgia, serif" font-size="11" fill="#555" text-anchor="middle" font-style="italic">Composition II en Rouge, Bleu et Jaune — P. Mondrian, 1930</text>
+</svg>
