@@ -2,7 +2,9 @@ const socket = io('/mamine');
 let myRole = ''; 
 let currentAuthors = [];
 let myUser = null; 
+let currentPhase = 'role'; 
 
+// Ces gifs sont UNIQUEMENT pour l'attente classique
 const gifList = ['silver.gif', 'pan.gif', 'vi.gif', 'fou.gif', 'jinx.gif', 'reb.gif', 'shoot.gif', 'mad.gif', 'imad.gif'];
 
 function getRandomGif() {
@@ -17,17 +19,18 @@ function showScreen(id) {
 function showWaitScreen(title, subtitle, showLeaderboardBtn = false) {
     document.getElementById('wait-title').innerHTML = `<i class="fa-solid fa-hourglass-half"></i> ` + title;
     document.getElementById('wait-subtitle').innerText = subtitle;
+    
     const waitGif = document.getElementById('wait-gif');
     waitGif.src = getRandomGif();
     waitGif.style.display = 'inline-block';
     
+    // On cache le podium par défaut
+    document.getElementById('victory-podium-container').style.display = 'none';
     document.getElementById('btn-to-leaderboards').style.display = showLeaderboardBtn ? 'block' : 'none';
+    
     showScreen('screen-wait');
 }
 
-// ==========================================
-// AUTHENTIFICATION AUTOMATIQUE
-// ==========================================
 async function initGame() {
     try {
         const response = await fetch('/api/me');
@@ -46,11 +49,11 @@ async function initGame() {
 }
 initGame();
 
-// ==========================================
-// LOGIQUE DU JEU
-// ==========================================
 function joinAsPlayer() {
     myRole = 'player';
+    currentPhase = 'lobby';
+    history.pushState({ screen: 'lobby' }, '', '#lobby'); 
+    
     socket.emit('join_as_player', { username: myUser.username, profile_pic: myUser.profile_pic }); 
     document.getElementById('lobby-wait-gif').src = getRandomGif();
     document.getElementById('lobby-wait-gif').style.display = 'inline-block';
@@ -59,11 +62,30 @@ function joinAsPlayer() {
 
 function joinAsMJ() {
     myRole = 'mj';
+    currentPhase = 'lobby';
+    history.pushState({ screen: 'lobby' }, '', '#lobby'); 
+    
     socket.emit('join_as_mj');
     document.getElementById('mj-controls').style.display = 'block';
     document.getElementById('wait-msg-container').style.display = 'none';
     showScreen('screen-lobby');
 }
+
+function leaveRole() {
+    history.back(); 
+}
+
+window.addEventListener('popstate', (event) => {
+    if (currentPhase === 'lobby' && myRole !== '') {
+        socket.emit('leave_role');
+        myRole = '';
+        currentPhase = 'role';
+        showScreen('screen-role');
+    } else if (currentPhase === 'ingame') {
+        history.pushState({ screen: 'ingame' }, '', '#ingame'); 
+        alert("Action impossible : La partie est en cours. Si vous souhaitez vraiment abandonner, vous devez rafraîchir (F5) ou fermer la page.");
+    }
+});
 
 socket.on('update_lobby', (data) => {
     const list = document.getElementById('player-list');
@@ -108,6 +130,9 @@ function mjStartRound() {
 }
 
 socket.on('phase_writing_players', (data) => {
+    currentPhase = 'ingame';
+    history.pushState({ screen: 'ingame' }, '', '#ingame'); 
+
     if (myRole === 'mj') {
         showWaitScreen("UPLINK ÉTABLI", "Attente de la génération des fausses données par les terminaux.");
     } else {
@@ -215,42 +240,77 @@ socket.on('phase_results', async (data) => {
     } else {
         document.getElementById('mj-next-btn').style.display = 'none';
     }
+
+    showScreen('screen-results');
 });
 
 function nextRound() {
     socket.emit('trigger_next_round');
 }
 
-// L'action du MJ pour terminer le jeu
 function endGame() {
     if(confirm("Voulez-vous vraiment terminer la partie et couronner le vainqueur ?")) {
         socket.emit('trigger_end_game');
     }
 }
 
-// Réception de la fin de partie par tout le monde
 socket.on('game_ended', async (data) => {
+    currentPhase = 'lobby'; 
+    history.pushState({ screen: 'lobby' }, '', '#lobby');
+
     let subtitle = "Le vainqueur a été déclaré !";
     if (data.winners.length > 0) {
         subtitle = "Victoire de : " + data.winners.join(', ');
     }
 
-    showWaitScreen("PARTIE TERMINÉE", subtitle, true);
+    // Affichage personnalisé pour la victoire
+    document.getElementById('wait-title').innerHTML = `<i class="fa-solid fa-trophy"></i> PARTIE TERMINÉE`;
+    document.getElementById('wait-subtitle').innerText = subtitle;
+    
+    // On met le GIF synchronisé choisi par le serveur
+    const waitGif = document.getElementById('wait-gif');
+    waitGif.src = `/mamine/asset/${data.winGif}`;
+    waitGif.style.display = 'inline-block';
 
-    // Si le joueur local fait partie des vainqueurs, il s'ajoute une victoire sur l'Arcade !
+    // Génération du podium HTML
+    const podiumContainer = document.getElementById('victory-podium-container');
+    let podiumHTML = '<ul id="leaderboard" style="margin-top: 20px;">';
+    data.finalLeaderboard.forEach((p, i) => {
+        let medal = i === 0 ? '<i class="fa-solid fa-crown" style="color: gold;"></i>' : `#${i+1}`;
+        podiumHTML += `
+            <li style="${i === 0 ? 'background: rgba(200, 155, 60, 0.2); border-color: #c89b3c; box-shadow: 0 0 20px rgba(200,155,60,0.3); transform: scale(1.05); z-index: 10;' : ''}">
+                <span>
+                    ${medal} &nbsp; 
+                    <img src="${p.profile_pic || 'https://via.placeholder.com/60/0ac8b9/000000?text=?'}" class="avatar-small" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/0ac8b9/000000?text=?';"> 
+                    ${p.username}
+                </span> 
+                <span style="${i === 0 ? 'color: #c89b3c;' : 'color: #0ac8b9;'}">${p.score} pts</span>
+            </li>
+        `;
+    });
+    podiumHTML += '</ul>';
+    podiumContainer.innerHTML = podiumHTML;
+    podiumContainer.style.display = 'block';
+
+    document.getElementById('btn-to-leaderboards').style.display = 'block';
+    showScreen('screen-wait');
+
     if (myRole === 'player' && data.winners.includes(myUser.username)) {
         await fetch('/api/add-victory', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 game_name: 'Le Contrebandier', 
-                game_url: '/mamine/contrebandier.html' // L'URL qui sera cliquable dans le classement
+                game_url: '/mamine/contrebandier.html' 
             })
         });
     }
 });
 
 socket.on('go_to_lobby', () => {
+    currentPhase = 'lobby';
+    history.pushState({ screen: 'lobby' }, '', '#lobby');
+
     if (myRole === 'mj') {
         document.getElementById('mj-question').value = '';
         document.getElementById('mj-true').value = '';

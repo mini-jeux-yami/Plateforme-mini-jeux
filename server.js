@@ -23,19 +23,16 @@ app.use(session({
     cookie: { maxAge: 1000 * 60 * 60 * 24 }
 }));
 
-// Création du dossier "uploads" s'il n'existe pas
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
-// Configuration de Multer pour stocker les fichiers
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Renomme le fichier avec le pseudo du joueur et l'heure pour éviter les conflits
         const ext = path.extname(file.originalname);
         cb(null, req.session.user.username + '_' + Date.now() + ext);
     }
@@ -43,7 +40,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.use(express.static(__dirname)); 
-// Permet au navigateur d'accéder aux images dans le dossier uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==============================================================================
@@ -114,7 +110,6 @@ app.get('/api/me', (req, res) => {
     }
 });
 
-// Route : Mise à jour par URL (existante)
 app.post('/api/update-profile', (req, res) => {
     if (!req.session.user) return res.status(401).json({ success: false, message: 'Non connecté.' });
     const { profile_pic } = req.body;
@@ -123,15 +118,12 @@ app.post('/api/update-profile', (req, res) => {
     res.json({ success: true });
 });
 
-// NOUVELLE ROUTE : Mise à jour par Upload de fichier
 app.post('/api/upload-avatar', upload.single('avatarFile'), (req, res) => {
     if (!req.session.user) return res.status(401).json({ success: false, message: 'Non connecté.' });
     if (!req.file) return res.status(400).json({ success: false, message: 'Aucun fichier reçu.' });
 
-    // Le chemin d'accès public à l'image
     const profilePicPath = '/uploads/' + req.file.filename;
     
-    // Mise à jour de la base de données
     const stmt = db.prepare('UPDATE users SET profile_pic = ? WHERE id = ?');
     stmt.run(profilePicPath, req.session.user.id);
 

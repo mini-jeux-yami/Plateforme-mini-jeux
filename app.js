@@ -83,7 +83,6 @@ async function logout() {
     checkAuth();
 }
 
-// MISE A JOUR PAR URL
 async function updateProfilePic() {
     const newUrl = document.getElementById('new-avatar-url').value;
     if (!newUrl) return;
@@ -101,12 +100,10 @@ async function updateProfilePic() {
     }
 }
 
-// NOUVEAU : MISE A JOUR PAR FICHIER UPLOADÉ
 async function uploadProfilePicFile() {
     const fileInput = document.getElementById('avatar-upload-file');
     if (fileInput.files.length === 0) return alert("Veuillez sélectionner une image.");
 
-    // FormData permet d'envoyer des fichiers physiques via fetch
     const formData = new FormData();
     formData.append('avatarFile', fileInput.files[0]);
 
@@ -118,14 +115,14 @@ async function uploadProfilePicFile() {
         const data = await response.json();
 
         if (data.success) {
-            // Le serveur nous renvoie le chemin (/uploads/nomdufichier.png)
             document.getElementById('user-avatar').src = data.profile_pic;
             toggleProfileEdit();
         } else {
-            alert(data.message);
+            alert("Erreur du serveur : " + data.message);
         }
     } catch (err) {
         console.error("Erreur lors de l'upload", err);
+        alert("Impossible d'envoyer l'image. Le serveur a-t-il bien été redémarré ?");
     }
 }
 
