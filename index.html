@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Centrale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="grid-3d"></div>
+
+    <div id="app-container">
+        <div id="auth-section" class="screen active">
+            <div class="logo-box"><i class="fa-solid fa-gamepad"></i> ARCADE CENTRALE</div>
+            <p class="instruction">Identifiez-vous pour accéder au hub.</p>
+
+            <form id="auth-form">
+                <div class="input-container">
+                    <i class="fa-solid fa-user input-icon"></i>
+                    <input type="text" id="username" placeholder="Pseudo" required>
+                </div>
+                <div class="input-container">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                    <input type="password" id="password" placeholder="Mot de passe" required>
+                </div>
+                
+                <div class="auth-buttons">
+                    <button type="submit" id="btn-login" class="btn-primary">Connexion</button>
+                    <button type="button" id="btn-register" class="btn-secondary">S'inscrire</button>
+                </div>
+                <p id="auth-error" class="error-msg"></p>
+                <p id="auth-success" class="success-msg"></p>
+            </form>
+        </div>
+
+        <div id="dashboard-section" class="screen">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <img id="user-avatar" src="/asset/default.png" alt="Avatar" class="avatar-large" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/0ac8b9/000000?text=?';">
+                    <div>
+                        <h2>Bienvenue, <span id="user-name">Joueur</span></h2>
+                        <button onclick="toggleProfileEdit()" class="btn-text"><i class="fa-solid fa-pen"></i> Modifier l'avatar</button>
+                    </div>
+                </div>
+                <button onclick="logout()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+            </div>
+
+            <div id="profile-edit-box" style="display: none;" class="edit-box">
+                <input type="text" id="new-avatar-url" placeholder="URL de la nouvelle image (http...)">
+                <button onclick="updateProfilePic()" class="btn-primary btn-small">Sauvegarder</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <a href="/leaderboards.html" class="btn-leaderboard"><i class="fa-solid fa-trophy"></i> Voir les Classements Généraux</a>
+
+            <h3 class="section-title">SÉLECTIONNEZ UN ESPACE CRÉATEUR :</h3>
+            
+            <div class="games-grid">
+                <a href="/mamine/index.html" class="game-card">
+                    <i class="fa-solid fa-user-ninja"></i>
+                    <h4>Espace de Mamine</h4>
+                    <p>Catalogue de jeux</p>
+                </a>
+                <a href="/yacine/index.html" class="game-card">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                    <h4>Espace de Yacine</h4>
+                    <p>Catalogue de jeux</p>
+                </a>
+                <a href="/imad/index.html" class="game-card">
+                    <i class="fa-solid fa-user-secret"></i>
+                    <h4>Espace d'Imad</h4>
+                    <p>Catalogue de jeux</p>
+                </a>
+                <a href="/anas/index.html" class="game-card">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <h4>Espace d'Anas</h4>
+                    <p>Catalogue de jeux</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

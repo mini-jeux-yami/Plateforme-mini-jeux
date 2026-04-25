@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade - Classements</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles spécifiques pour organiser les classements en grille */
+        .leaderboards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .game-leaderboard-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(10, 200, 185, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-leaderboard-card h3 {
+            color: #ff00ea;
+            border-bottom: 1px solid rgba(255, 0, 234, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .game-leaderboard-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .game-leaderboard-card li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 16px;
+        }
+
+        .game-leaderboard-card li:last-child {
+            border-bottom: none;
+        }
+
+        .game-leaderboard-card li:nth-child(1) {
+            background: rgba(200, 155, 60, 0.15);
+            border-radius: 8px;
+            color: #c89b3c;
+            font-weight: bold;
+            border: 1px solid rgba(200, 155, 60, 0.3);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .rank-medal {
+            width: 25px;
+            text-align: center;
+            margin-right: 10px;
+            color: #94a3b8;
+        }
+        
+        .score-value {
+            color: #0ac8b9;
+            font-weight: bold;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-3d"></div>
+
+    <div id="app-container" style="max-width: 1000px;">
+        <div class="logo-box"><i class="fa-solid fa-trophy"></i> TEMPLE DE LA RENOMMÉE</div>
+        <p class="instruction">Les meilleurs scores mondiaux par mini-jeu.</p>
+        
+        <div class="divider"></div>
+
+        <div id="leaderboards-container" class="leaderboards-grid">
+            <p style="grid-column: 1 / -1;"><i class="fa-solid fa-spinner fa-spin"></i> Chargement des archives...</p>
+        </div>
+
+        <div class="divider" style="margin-top: 40px;"></div>
+        <a href="/" class="btn-primary" style="display: inline-block; text-decoration: none; width: auto;"><i class="fa-solid fa-arrow-left"></i> Retour au Hub Central</a>
+    </div>
+
+    <script>
+        async function loadLeaderboards() {
+            try {
+                // On récupère tous les meilleurs scores de la base de données
+                const response = await fetch('/api/leaderboards');
+                const result = await response.json();
+                
+                const container = document.getElementById('leaderboards-container');
+                container.innerHTML = ''; // On vide le message de chargement
+
+                if (!result.success || result.data.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1 / -1;">Aucun score enregistré pour le moment. Allez jouer !</p>';
+                    return;
+                }
+
+                // 1. On regroupe intelligemment les scores par NOM DU JEU
+                const gamesData = {};
+                result.data.forEach(row => {
+                    // Si le jeu n'existe pas encore dans notre objet, on le crée
+                    if (!gamesData[row.game_name]) {
+                        gamesData[row.game_name] = [];
+                    }
+                    // On ajoute le score du joueur dans la catégorie du jeu
+                    gamesData[row.game_name].push(row);
+                });
+
+                // 2. On génère une "Carte" HTML pour chaque jeu trouvé
+                for (const [gameName, scores] of Object.entries(gamesData)) {
+                    // On trie les scores du plus grand au plus petit au cas où
+                    scores.sort((a, b) => b.best_score - a.score);
+
+                    let cardHTML = `
+                        <div class="game-leaderboard-card">
+                            <h3><i class="fa-solid fa-gamepad"></i> ${gameName}</h3>
+                            <ul>
+                    `;
+                    
+                    scores.forEach((s, index) => {
+                        let rankDisplay = index === 0 ? '<i class="fa-solid fa-medal" style="color: gold;"></i>' : `#${index + 1}`;
+                        cardHTML += `
+                            <li>
+                                <div class="player-info">
+                                    <span class="rank-medal">${rankDisplay}</span>
+                                    <img src="${s.profile_pic || 'https://via.placeholder.com/35/0ac8b9/000000?text=?'}" class="avatar-small" onerror="this.onerror=null; this.src='https://via.placeholder.com/35/0ac8b9/000000?text=?';"> 
+                                    ${s.username}
+                                </div>
+                                <span class="score-value">${s.best_score} pts</span>
+                            </li>`;
+                    });
+
+                    cardHTML += `
+                            </ul>
+                        </div>
+                    `;
+
+                    // On ajoute la carte finale dans la grille
+                    container.innerHTML += cardHTML;
+                }
+            } catch (err) {
+                console.error("Erreur de chargement des classements :", err);
+                document.getElementById('leaderboards-container').innerHTML = '<p style="color: red;">Erreur de connexion aux archives de l\'Arcade.</p>';
+            }
+        }
+        
+        // On lance le chargement dès l'ouverture de la page
+        loadLeaderboards();
+    </script>
+</body>
+</html>

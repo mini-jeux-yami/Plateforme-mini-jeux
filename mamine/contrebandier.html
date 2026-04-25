@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Le Contrebandier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="grid-3d"></div>
+
+    <div id="app-container">
+        <div id="screen-role" class="screen active">
+            <div class="logo-box"><i class="fa-solid fa-mask"></i> LE CONTREBANDIER</div>
+            <p class="instruction">Authentification réussie : <strong id="display-username" style="color:#0ac8b9;"></strong></p>
+            <div class="auth-buttons">
+                <button onclick="joinAsPlayer()" class="btn-primary">Rejoindre en tant que Joueur</button>
+                <button onclick="joinAsMJ()" class="btn-secondary"><i class="fa-solid fa-crown"></i> Je suis le MJ</button>
+            </div>
+            <div class="divider"></div>
+            <a href="/" class="btn-text" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Retour à l'Arcade</a>
+        </div>
+
+        <div id="screen-lobby" class="screen">
+            <h2><i class="fa-brands fa-hubspot"></i> NEXUS - SALLE D'ATTENTE</h2>
+            <ul id="player-list"></ul>
+            
+            <div id="mj-controls" style="display: none;" class="mj-panel">
+                <h3><i class="fa-solid fa-terminal"></i> Lancer la Manche</h3>
+                <input type="text" id="mj-question" placeholder="Base de données (La question)...">
+                <input type="text" id="mj-true" placeholder="La VÉRITÉ absolue">
+                <input type="text" id="mj-lie" placeholder="TON paquet de données corrompu (Mensonge)">
+                <button class="btn-mj" onclick="mjStartRound()"><i class="fa-solid fa-upload"></i> Lancer l'extraction !</button>
+                
+                <div class="divider" style="margin: 20px 0;"></div>
+                
+                <h3><i class="fa-solid fa-wrench"></i> Forcer les Scores de la session</h3>
+                <div class="score-edit-grid" id="mj-score-grid">
+                    </div>
+                <button class="btn-primary" onclick="mjUpdateScores()"><i class="fa-solid fa-sync"></i> Mettre à jour les scores</button>
+            </div>
+            
+            <div id="wait-msg-container">
+                <img id="lobby-wait-gif" src="" class="wait-gif" style="display: none;" alt="Patience...">
+                <p id="wait-msg" class="glitch-text"><i class="fa-solid fa-spinner fa-spin"></i> En attente du MJ...</p>
+            </div>
+        </div>
+
+        <div id="screen-writing" class="screen">
+            <div class="question-box">
+                <span class="badge"><i class="fa-solid fa-database"></i> DONNÉE REQUISE</span>
+                <h2 id="display-question"></h2>
+            </div>
+            <p class="instruction">Générez une fausse archive indétectable :</p>
+            <div class="input-container">
+                <i class="fa-solid fa-mask input-icon"></i>
+                <input type="text" id="player-lie" placeholder="Tapez votre mensonge ici...">
+            </div>
+            <button onclick="submitLie()" class="btn-primary"><i class="fa-solid fa-virus"></i> Injecter le virus</button>
+        </div>
+
+        <div id="screen-voting" class="screen">
+            <div class="question-box"><h2 id="vote-question"></h2></div>
+            <div id="player-voting-area">
+                <p class="instruction"><i class="fa-solid fa-eye"></i> Isolez la vérité. Dénoncez les anomalies.</p>
+                <div id="answers-container"></div>
+                <button onclick="submitVotes()" id="btn-submit-votes" class="btn-primary"><i class="fa-solid fa-lock"></i> Verrouiller</button>
+            </div>
+            <div id="mj-voting-area" style="display: none;">
+                <p class="instruction"><i class="fa-solid fa-satellite-dish"></i> Diffusion des données corrompues en cours :</p>
+                <div id="mj-answers-display"></div>
+            </div>
+        </div>
+
+        <div id="screen-results" class="screen">
+            <h2><i class="fa-solid fa-ranking-star"></i> RÉSOLUTION DU SYSTÈME</h2>
+            <div class="truth-reveal">
+                <p><i class="fa-solid fa-check-double"></i> L'archive originelle était :</p>
+                <strong id="res-true-answer"></strong>
+            </div>
+            
+            <div id="round-recap-container" class="recap-box">
+                <h3><i class="fa-solid fa-chart-pie"></i> Analyse des Données de la Manche</h3>
+                <p id="recap-mj-lie" class="mj-lie-text"></p>
+                <div id="round-recap-list"></div>
+            </div>
+            
+            <ul id="leaderboard"></ul>
+            <div id="mj-next-btn" style="display:none;">
+                <button class="btn-mj" onclick="nextRound()"><i class="fa-solid fa-forward-step"></i> Manche suivante</button>
+            </div>
+        </div>
+
+        <div id="screen-wait" class="screen">
+            <img id="wait-gif" src="" class="wait-gif" alt="Patientez" style="display: none;">
+            <h2 id="wait-title" class="glitch-text"></h2>
+            <p id="wait-subtitle" class="instruction"></p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
