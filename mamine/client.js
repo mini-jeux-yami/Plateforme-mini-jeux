@@ -14,12 +14,14 @@ function showScreen(id) {
     document.getElementById(id).classList.add('active');
 }
 
-function showWaitScreen(title, subtitle) {
+function showWaitScreen(title, subtitle, showLeaderboardBtn = false) {
     document.getElementById('wait-title').innerHTML = `<i class="fa-solid fa-hourglass-half"></i> ` + title;
     document.getElementById('wait-subtitle').innerText = subtitle;
     const waitGif = document.getElementById('wait-gif');
     waitGif.src = getRandomGif();
     waitGif.style.display = 'inline-block';
+    
+    document.getElementById('btn-to-leaderboards').style.display = showLeaderboardBtn ? 'block' : 'none';
     showScreen('screen-wait');
 }
 
@@ -72,7 +74,6 @@ socket.on('update_lobby', (data) => {
         </li>
     `).join('');
 
-    // CORRECTION : On ne génère les champs de score QUE pour les vrais joueurs (data.players)
     if (myRole === 'mj' && data.players) {
         const grid = document.getElementById('mj-score-grid');
         grid.innerHTML = '';
@@ -209,24 +210,45 @@ socket.on('phase_results', async (data) => {
         </li>
     `).join('');
 
-    document.getElementById('mj-next-btn').style.display = (myRole === 'mj') ? 'block' : 'none';
-    showScreen('screen-results');
-
-    if (myRole === 'player') {
-        const myData = data.leaderboard.find(p => p.username === myUser.username);
-        if (myData) {
-            await fetch('/api/save-score', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ game_name: 'Le Contrebandier', score: myData.score })
-            });
-        }
+    if (myRole === 'mj') {
+        document.getElementById('mj-next-btn').style.display = 'flex';
+    } else {
+        document.getElementById('mj-next-btn').style.display = 'none';
     }
 });
 
 function nextRound() {
     socket.emit('trigger_next_round');
 }
+
+// L'action du MJ pour terminer le jeu
+function endGame() {
+    if(confirm("Voulez-vous vraiment terminer la partie et couronner le vainqueur ?")) {
+        socket.emit('trigger_end_game');
+    }
+}
+
+// Réception de la fin de partie par tout le monde
+socket.on('game_ended', async (data) => {
+    let subtitle = "Le vainqueur a été déclaré !";
+    if (data.winners.length > 0) {
+        subtitle = "Victoire de : " + data.winners.join(', ');
+    }
+
+    showWaitScreen("PARTIE TERMINÉE", subtitle, true);
+
+    // Si le joueur local fait partie des vainqueurs, il s'ajoute une victoire sur l'Arcade !
+    if (myRole === 'player' && data.winners.includes(myUser.username)) {
+        await fetch('/api/add-victory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                game_name: 'Le Contrebandier', 
+                game_url: '/mamine/contrebandier.html' // L'URL qui sera cliquable dans le classement
+            })
+        });
+    }
+});
 
 socket.on('go_to_lobby', () => {
     if (myRole === 'mj') {

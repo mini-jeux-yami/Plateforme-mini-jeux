@@ -1,4 +1,3 @@
-// Ce module exporte une fonction qui prend l'objet 'io' global et gère tout ce qui se passe sur le canal '/mamine'
 module.exports = function(io) {
     const mamineIo = io.of('/mamine');
 
@@ -9,14 +8,10 @@ module.exports = function(io) {
 
     mamineIo.on('connection', (socket) => {
         
-        // CORRECTION : On accepte un objet "user" contenant le pseudo ET la photo
         socket.on('join_as_player', (user) => {
             if (inGameScores[user.username] === undefined) inGameScores[user.username] = 0;
             gamePlayers[socket.id] = { 
-                id: socket.id, 
-                username: user.username, 
-                profile_pic: user.profile_pic, // On stocke la photo de profil ici !
-                score: inGameScores[user.username] 
+                id: socket.id, username: user.username, profile_pic: user.profile_pic, score: inGameScores[user.username] 
             };
             mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: !!mjSocketId, scoresDb: inGameScores });
         });
@@ -69,6 +64,29 @@ module.exports = function(io) {
             mamineIo.emit('go_to_lobby');
         });
 
+        // NOUVEAU : Fin de la partie demandée par le MJ
+        socket.on('trigger_end_game', () => {
+            let maxScore = -1;
+            let winners = [];
+            
+            // On trouve le score le plus haut
+            for (let id in gamePlayers) {
+                if (gamePlayers[id].score > maxScore) {
+                    maxScore = gamePlayers[id].score;
+                    winners = [gamePlayers[id].username];
+                } else if (gamePlayers[id].score === maxScore && maxScore > 0) {
+                    winners.push(gamePlayers[id].username); // Égalité
+                }
+            }
+
+            mamineIo.emit('game_ended', { winners: winners });
+
+            // On réinitialise la partie pour les prochains
+            inGameScores = {};
+            for(let id in gamePlayers) gamePlayers[id].score = 0;
+            currentRound = { question: "", trueAnswer: "", mjLie: "", playerLies: {}, votes: {}, allAnswers: [] };
+        });
+
         function startVotingPhase() {
             let answers = [currentRound.trueAnswer, currentRound.mjLie, ...Object.values(currentRound.playerLies)];
             currentRound.allAnswers = answers.sort(() => Math.random() - 0.5); 
@@ -112,11 +130,7 @@ module.exports = function(io) {
                 inGameScores[player.username] = player.score; 
 
                 roundDetails.push({
-                    username: player.username, 
-                    profile_pic: player.profile_pic, // On transmet la photo au récap
-                    votedFor: vote.selectedTruth, 
-                    myLie: myLie, 
-                    victims: victimsCount,
+                    username: player.username, profile_pic: player.profile_pic, votedFor: vote.selectedTruth, myLie: myLie, victims: victimsCount,
                     points: { truth: ptsTruth, trap: ptsTrap, guess: ptsGuess, bonus: ptsBonus, total: roundTotal }
                 });
             }

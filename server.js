@@ -4,6 +4,8 @@ const { Server } = require('socket.io');
 const Database = require('better-sqlite3');
 const session = require('express-session');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -21,7 +23,28 @@ app.use(session({
     cookie: { maxAge: 1000 * 60 * 60 * 24 }
 }));
 
+// Création du dossier "uploads" s'il n'existe pas
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+// Configuration de Multer pour stocker les fichiers
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        // Renomme le fichier avec le pseudo du joueur et l'heure pour éviter les conflits
+        const ext = path.extname(file.originalname);
+        cb(null, req.session.user.username + '_' + Date.now() + ext);
+    }
+});
+const upload = multer({ storage: storage });
+
 app.use(express.static(__dirname)); 
+// Permet au navigateur d'accéder aux images dans le dossier uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==============================================================================
 // 2. BASE DE DONNÉES SQLite (arcade.db)
@@ -91,6 +114,7 @@ app.get('/api/me', (req, res) => {
     }
 });
 
+// Route : Mise à jour par URL (existante)
 app.post('/api/update-profile', (req, res) => {
     if (!req.session.user) return res.status(401).json({ success: false, message: 'Non connecté.' });
     const { profile_pic } = req.body;
@@ -99,27 +123,37 @@ app.post('/api/update-profile', (req, res) => {
     res.json({ success: true });
 });
 
-// NOUVELLE ROUTE : Enregistrer une victoire
+// NOUVELLE ROUTE : Mise à jour par Upload de fichier
+app.post('/api/upload-avatar', upload.single('avatarFile'), (req, res) => {
+    if (!req.session.user) return res.status(401).json({ success: false, message: 'Non connecté.' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'Aucun fichier reçu.' });
+
+    // Le chemin d'accès public à l'image
+    const profilePicPath = '/uploads/' + req.file.filename;
+    
+    // Mise à jour de la base de données
+    const stmt = db.prepare('UPDATE users SET profile_pic = ? WHERE id = ?');
+    stmt.run(profilePicPath, req.session.user.id);
+
+    res.json({ success: true, profile_pic: profilePicPath });
+});
+
 app.post('/api/add-victory', (req, res) => {
     if (!req.session.user) return res.status(401).json({ success: false, message: 'Non connecté.' });
     const { game_name, game_url } = req.body;
     const username = req.session.user.username;
 
-    // Vérifie si le joueur a déjà gagné à ce jeu
     const row = db.prepare('SELECT * FROM victories WHERE username = ? AND game_name = ?').get(username, game_name);
     
     if (row) {
-        // Il a déjà gagné avant, on fait +1
         db.prepare('UPDATE victories SET wins = wins + 1, game_url = ? WHERE id = ?').run(game_url, row.id);
     } else {
-        // C'est sa première victoire à ce jeu !
         db.prepare('INSERT INTO victories (username, game_name, game_url, wins) VALUES (?, ?, ?, 1)').run(username, game_name, game_url);
     }
     
     res.json({ success: true });
 });
 
-// NOUVELLE ROUTE : Récupérer les classements de victoires
 app.get('/api/leaderboards', (req, res) => {
     const stmt = db.prepare(`
         SELECT v.game_name, v.game_url, v.username, v.wins, u.profile_pic
