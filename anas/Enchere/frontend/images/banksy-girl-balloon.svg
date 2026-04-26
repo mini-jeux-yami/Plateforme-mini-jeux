@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <defs>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feBlend in="SourceGraphic" mode="multiply" result="blend"/><feComposite in="blend" in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <!-- Fond papier texturé crème -->
+  <rect width="400" height="520" fill="#f5f0e8"/>
+  <rect width="400" height="520" fill="url(#grain)" opacity="0.08"/>
+  <!-- Cadre intérieur au crayon -->
+  <rect x="20" y="20" width="360" height="480" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.4"/>
+  <!-- Corde du ballon -->
+  <path d="M200 240 C198 255 202 270 198 285 C196 295 200 310 197 320 C195 330 200 345 198 358" fill="none" stroke="#111" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Ballon cœur rouge -->
+  <path d="M200 140 C200 140 175 115 162 130 C150 145 162 165 200 195 C238 165 250 145 238 130 C225 115 200 140 200 140Z" fill="#e8192c"/>
+  <path d="M200 140 C200 140 175 115 162 130 C150 145 162 165 200 195 C238 165 250 145 238 130 C225 115 200 140 200 140Z" fill="none" stroke="#c0001a" stroke-width="1.5"/>
+  <!-- Reflet ballon -->
+  <ellipse cx="182" cy="145" rx="8" ry="12" fill="rgba(255,255,255,0.35)" transform="rotate(-30,182,145)"/>
+  <!-- Corps de la fillette (silhouette noire) -->
+  <ellipse cx="200" cy="390" rx="22" ry="12" fill="#111" opacity="0.3"/>
+  <!-- Robe -->
+  <path d="M185 360 C182 375 178 395 175 415 L225 415 C222 395 218 375 215 360Z" fill="#111"/>
+  <!-- Torse -->
+  <rect x="187" y="338" width="26" height="25" rx="4" fill="#111"/>
+  <!-- Bras levé (tenant le ballon) -->
+  <path d="M213 345 C225 330 218 305 205 290" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+  <!-- Bras baissé -->
+  <path d="M187 348 C175 360 170 368 165 370" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+  <!-- Tête -->
+  <ellipse cx="200" cy="325" rx="20" ry="18" fill="#111"/>
+  <!-- Cheveux (nattes) -->
+  <ellipse cx="182" cy="325" rx="6" ry="20" fill="#111" transform="rotate(-10,182,325)"/>
+  <ellipse cx="218" cy="325" rx="6" ry="20" fill="#111" transform="rotate(10,218,325)"/>
+  <!-- Jambes -->
+  <path d="M185 415 L180 455 M215 415 L220 455" stroke="#111" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <!-- Chaussures -->
+  <ellipse cx="178" cy="457" rx="10" ry="5" fill="#111"/>
+  <ellipse cx="222" cy="457" rx="10" ry="5" fill="#111"/>
+  <!-- Signature style Banksy -->
+  <text x="330" y="500" font-family="Arial, sans-serif" font-size="11" fill="#555" font-style="italic" text-anchor="end">Banksy, 2006</text>
+  <!-- Titre -->
+  <text x="200" y="50" font-family="Arial, sans-serif" font-size="13" fill="#333" text-anchor="middle" letter-spacing="3">GIRL WITH BALLOON</text>
+</svg>

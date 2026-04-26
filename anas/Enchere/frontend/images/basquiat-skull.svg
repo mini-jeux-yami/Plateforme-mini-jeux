@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+  <rect width="400" height="520" fill="#1a0505"/>
+  <!-- Fond texturé type peinture brute -->
+  <rect x="5" y="5" width="390" height="510" fill="#2a0808" rx="2"/>
+  <!-- Taches de peinture fond -->
+  <circle cx="50" cy="80" r="35" fill="#8b0000" opacity="0.4"/>
+  <circle cx="350" cy="400" r="45" fill="#8b0000" opacity="0.3"/>
+  <circle cx="300" cy="100" r="25" fill="#ff6600" opacity="0.25"/>
+  <circle cx="80" cy="420" r="30" fill="#ffcc00" opacity="0.2"/>
+  <!-- Crâne stylisé Basquiat -->
+  <!-- Forme principale du crâne -->
+  <path d="M200 100 C130 100 95 150 95 210 C95 265 120 295 145 315 L145 355 L255 355 L255 315 C280 295 305 265 305 210 C305 150 270 100 200 100Z" fill="none" stroke="#e8e0d0" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M200 105 C133 105 100 153 100 212 C100 263 123 292 148 312 L148 350 L252 350 L252 312 C277 292 300 263 300 212 C300 153 267 105 200 105Z" fill="#e8e0d0" opacity="0.92"/>
+  <!-- Yeux (orbites) -->
+  <rect x="145" y="190" width="42" height="48" rx="5" fill="#1a0505" stroke="#111" stroke-width="3"/>
+  <rect x="213" y="190" width="42" height="48" rx="5" fill="#1a0505" stroke="#111" stroke-width="3"/>
+  <!-- Pupilles rouges -->
+  <circle cx="166" cy="214" r="12" fill="#cc0000"/>
+  <circle cx="234" cy="214" r="12" fill="#cc0000"/>
+  <!-- Nez -->
+  <path d="M193 265 L200 290 L207 265" fill="none" stroke="#333" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- Bouche / dents style Basquiat -->
+  <rect x="155" y="300" width="90" height="35" rx="3" fill="#1a0505" stroke="#333" stroke-width="3"/>
+  <!-- Dents inégales -->
+  <rect x="160" y="305" width="13" height="22" fill="#e8e0d0"/>
+  <rect x="176" y="308" width="11" height="18" fill="#e8e0d0"/>
+  <rect x="190" y="304" width="14" height="24" fill="#e8e0d0"/>
+  <rect x="208" y="307" width="12" height="19" fill="#e8e0d0"/>
+  <rect x="223" y="305" width="13" height="22" fill="#e8e0d0"/>
+  <!-- Rayures / hachures style Basquiat -->
+  <line x1="120" y1="160" x2="145" y2="180" stroke="#333" stroke-width="2.5"/>
+  <line x1="115" y1="170" x2="140" y2="190" stroke="#333" stroke-width="2"/>
+  <line x1="280" y1="160" x2="255" y2="180" stroke="#333" stroke-width="2.5"/>
+  <line x1="285" y1="170" x2="260" y2="190" stroke="#333" stroke-width="2"/>
+  <!-- Couronne style SAMO -->
+  <polygon points="200,65 215,88 235,75 228,100 200,92 172,100 165,75 185,88" fill="none" stroke="#ffcc00" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- Texte SAMO style -->
+  <text x="35" y="480" font-family="'Courier New', monospace" font-size="14" fill="#ffcc00" font-weight="bold">SAMO© 1982</text>
+  <text x="35" y="460" font-family="'Courier New', monospace" font-size="10" fill="#ff6600" opacity="0.8">UNTITLED (SKULL)</text>
+  <!-- Gribouillis décoratifs -->
+  <text x="310" y="135" font-family="'Courier New', monospace" font-size="10" fill="#ff6600" opacity="0.6" transform="rotate(15,310,135)">©</text>
+  <text x="90" y="380" font-family="'Courier New', monospace" font-size="9" fill="#e8e0d0" opacity="0.4" transform="rotate(-8,90,380)">PER CAPITA</text>
+</svg>

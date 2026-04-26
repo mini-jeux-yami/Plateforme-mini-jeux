@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLIND.AUCTION // NEON DISTRICT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/anas/Enchere/frontend/css/style.css" />
+</head>
+<body>
+  <!-- Décor cyberpunk -->
+  <div class="cp-bg" aria-hidden="true">
+    <div class="cp-grid"></div>
+    <div class="cp-scan"></div>
+    <div class="cp-blob cp-blob-1"></div>
+    <div class="cp-blob cp-blob-2"></div>
+    <div class="cp-blob cp-blob-3"></div>
+  </div>
+
+  <!-- ============================================================
+       VUE 1 : LOBBY
+       ============================================================ -->
+  <section id="view-lobby" class="view lobby-body">
+    <div class="lobby-shell">
+
+      <!-- Panneau de règles à gauche -->
+      <aside class="rules-panel" aria-labelledby="rulesTitle">
+        <p class="cp-overline">// PROTOCOL.MANUAL</p>
+        <h2 id="rulesTitle" class="rules-title">RÈGLES DU JEU</h2>
+
+        <section class="rules-block rules-training-block">
+          <h3 class="rules-h">🎓 MANCHE D'ENTRAÎNEMENT</h3>
+          <p>La <strong>1re manche</strong> est gratuite — familiarisez-vous avec le système. Les points sont <span class="hl-yellow">remis à zéro</span> avant le vrai départ.</p>
+        </section>
+
+        <section class="rules-block">
+          <h3 class="rules-h">▸ SETUP</h3>
+          <ul class="rules-list">
+            <li><strong>3 estimateurs</strong> + <strong>1 commissaire-priseur</strong> (MJ).</li>
+            <li>Le MJ voit la <span class="hl-yellow">vraie valeur</span> ; les joueurs ne voient que l'image.</li>
+          </ul>
+        </section>
+
+        <section class="rules-block">
+          <h3 class="rules-h">▸ 3 ESSAIS PAR MANCHE</h3>
+          <ul class="rules-list">
+            <li>Chaque joueur a <strong>3 essais</strong> pour estimer le prix.</li>
+            <li>Après chaque essai, une flèche indique si le prix réel est <span class="hl-green">⬆ plus élevé</span> ou <span class="hl-magenta">⬇ plus bas</span>.</li>
+            <li><strong>Double flèche ⬆⬆ / ⬇⬇</strong> si l'écart dépasse 50 %.</li>
+            <li>C'est le <strong>3e essai</strong> qui est retenu pour le scoring.</li>
+          </ul>
+        </section>
+
+        <section class="rules-block">
+          <h3 class="rules-h">▸ DÉROULEMENT</h3>
+          <ol class="rules-list">
+            <li>Un objet apparaît à l'écran.</li>
+            <li>Chaque joueur soumet ses estimations (3 essais max).</li>
+            <li>Quand tous ont terminé, le MJ clique <span class="hl-cyan">⚡ ADJUGER</span>.</li>
+            <li>Estimations révélées → points distribués.</li>
+            <li>On enchaîne jusqu'à épuisement des objets.</li>
+          </ol>
+        </section>
+
+        <section class="rules-block">
+          <h3 class="rules-h">▸ SCORING (CRED)</h3>
+          <ul class="rules-list rules-score">
+            <li>
+              <span class="badge-pts closest">📏 PLUS PROCHE</span>
+              <span class="rules-pts">+1 pt</span>
+              <small>au plus proche (ex-aequo : tous marquent).</small>
+            </li>
+            <li>
+              <span class="badge-pts within">±5 %</span>
+              <span class="rules-pts">+1 pt</span>
+              <small>si l'estimation est dans une marge de 5 %.</small>
+            </li>
+            <li>
+              <span class="badge-pts exact">🎯 EXACT</span>
+              <span class="rules-pts">+1 pt</span>
+              <small>si l'estimation tombe pile sur la valeur.</small>
+            </li>
+          </ul>
+          <p class="rules-note">→ Les 3 bonus se cumulent. Pile = <strong>3 pts</strong>.</p>
+        </section>
+
+        <section class="rules-block rules-bonus">
+          <h3 class="rules-h">⚡ OVERCLOCK ROUND</h3>
+          <p>Toutes les <strong>10 manches</strong> réelles, les points sont <strong class="hl-yellow">doublés ×2</strong>.</p>
+        </section>
+
+        <section class="rules-block">
+          <h3 class="rules-h">▸ FIN DE PARTIE</h3>
+          <p>Pile épuisée → le joueur avec le plus de <span class="hl-green">CRED</span> remporte la transmission.</p>
+        </section>
+      </aside>
+
+      <!-- Menu principal -->
+      <main class="lobby-card">
+        <p class="cp-overline">// NEON DISTRICT — TRANSMISSION 04.25</p>
+        <h1 class="cp-glitch" data-text="BLIND.AUCTION">BLIND.AUCTION</h1>
+        <p class="subtitle">
+          3 estimateurs &middot; 1 commissaire-priseur &middot; 3 essais &middot; signal crypté.
+        </p>
+
+        <!-- Bandeau profil plateforme (affiché si connecté) -->
+        <div id="profileBanner" class="profile-banner hidden">
+          <img id="lobbyAvatar" src="/asset/default.png" alt="Avatar"
+               onerror="this.src='https://via.placeholder.com/48/0a0316/00fff9?text=?'" class="lobby-avatar" />
+          <div class="profile-banner-info">
+            <span id="lobbyUsername" class="profile-banner-name">—</span>
+            <span class="profile-banner-badge">// OPÉRATEUR IDENTIFIÉ</span>
+          </div>
+        </div>
+
+        <form id="joinForm" class="lobby-form" autocomplete="off">
+          <label for="pseudo">&gt; ENTER HANDLE</label>
+          <input id="pseudo" name="pseudo" type="text" maxlength="20"
+                 placeholder="ex : N3ON_alice" required />
+          <div class="lobby-buttons">
+            <button type="submit" name="role" value="player" class="btn btn-primary">
+              ▶ JACK IN [JOUEUR]
+            </button>
+            <button type="submit" name="role" value="gm" class="btn btn-secondary">
+              ⚙ HOST SESSION [MJ]
+            </button>
+          </div>
+        </form>
+
+        <p id="lobbyMessage" class="lobby-message" role="status" aria-live="polite"></p>
+
+        <p style="margin-top:1rem;">
+          <a href="/anas/index.html" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);">
+            ← Retour à l'espace d'Anas
+          </a>
+        </p>
+      </main>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VUE 2 : JOUEUR
+       ============================================================ -->
+  <section id="view-player" class="view player-body hidden">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <img id="playerAvatar" src="/asset/default.png" alt=""
+             onerror="this.src='https://via.placeholder.com/32/0a0316/ff2bd6?text=?'"
+             class="topbar-avatar" />
+        <span class="chip chip-role">★ ESTIMATEUR</span>
+        <span id="playerPseudo" class="pseudo">—</span>
+      </div>
+      <div class="topbar-right">
+        <span class="label">CRED</span>
+        <span id="playerPoints" class="budget">0</span>
+      </div>
+    </header>
+
+    <section id="waitingRoom" class="center-card">
+      <h2>// SAS DE CONNEXION</h2>
+      <p>&gt; en attente du commissaire et des autres opérateurs…</p>
+      <ul id="waitingList" class="list-plain"></ul>
+    </section>
+
+    <section id="auctionZone" class="auction-zone hidden">
+      <div class="auction-header">
+        <span id="playerItemCounter" class="counter">Objet 1 / 21</span>
+      </div>
+
+      <!-- Bannière manche d'entraînement -->
+      <div id="trainingBanner" class="training-banner hidden" role="alert">
+        🎓 MANCHE D'ENTRAÎNEMENT — Les points ne comptent pas &amp; seront remis à zéro après
+      </div>
+
+      <!-- Bandeau manche bonus -->
+      <p id="bonusBanner" class="bonus-banner hidden">⚡ OVERCLOCK ROUND // POINTS x2</p>
+
+      <div class="item-card">
+        <img id="playerItemImage" src="" alt="" />
+        <h2 id="playerItemName">—</h2>
+      </div>
+
+      <form id="bidForm" class="bid-form" autocomplete="off">
+        <!-- Compteur d'essais -->
+        <div class="tries-row">
+          <span class="tries-label">ESSAI</span>
+          <span id="tryDots" class="try-dots">
+            <span class="try-dot" data-try="1"></span>
+            <span class="try-dot" data-try="2"></span>
+            <span class="try-dot" data-try="3"></span>
+          </span>
+          <span id="tryCounter" class="tries-counter">1 / 3</span>
+        </div>
+
+        <!-- Zone d'indice directionnel -->
+        <div id="bidHintArea" class="bid-hint-area hidden" aria-live="polite"></div>
+
+        <label for="bidAmount">&gt; ESTIMATION CRYPTÉE</label>
+        <div class="bid-row">
+          <input id="bidAmount" name="bidAmount" type="number" min="0" step="1" required placeholder="0" />
+          <span class="currency">€</span>
+          <button type="submit" class="btn btn-primary">▶ TRANSMETTRE</button>
+        </div>
+        <small id="bidError" class="error"></small>
+      </form>
+
+      <div id="waitingOverlay" class="waiting-overlay hidden">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>&gt; SIGNAL TRANSMIS &middot; en attente des autres opérateurs…</p>
+      </div>
+    </section>
+
+    <section id="playerGameOver" class="center-card hidden">
+      <h2>// END.OF.LINE</h2>
+      <p class="subtitle">Transmission terminée — résultats finaux ci-dessous.</p>
+      <ol id="playerFinalScores" class="scoreboard"></ol>
+    </section>
+
+    <div id="resultModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3 id="resultTitle">// DATA REVEAL</h3>
+        <div id="trainingResultBanner" class="training-banner hidden">
+          🎓 MANCHE D'ENTRAÎNEMENT — Points non comptabilisés &amp; remis à zéro
+        </div>
+        <p id="resultTrueValue" class="result-line"></p>
+        <p id="resultBonusBanner" class="bonus-banner hidden">⚡ OVERCLOCK ROUND // POINTS x2</p>
+
+        <table class="bids-table">
+          <thead>
+            <tr><th>HANDLE</th><th>ESTIMATION</th><th>ESSAIS</th><th>Δ</th><th>BONUS</th><th>CRED</th></tr>
+          </thead>
+          <tbody id="resultBidsBody"></tbody>
+        </table>
+
+        <h4 class="mini-title">// LEADERBOARD</h4>
+        <table id="playerStandings" class="standings-table">
+          <thead><tr><th>HANDLE</th><th>CRED</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p id="playerRemaining" class="muted"></p>
+
+        <button id="closeResult" class="btn btn-primary">▶ CONTINUER</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       VUE 3 : MAÎTRE DU JEU
+       ============================================================ -->
+  <section id="view-gm" class="view gm-body hidden">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <img id="gmAvatar" src="/asset/default.png" alt=""
+             onerror="this.src='https://via.placeholder.com/32/0a0316/00fff9?text=?'"
+             class="topbar-avatar topbar-gm-avatar" />
+        <span class="chip chip-role chip-gm">⚙ COMMISSAIRE</span>
+        <span id="gmPseudo" class="pseudo">—</span>
+      </div>
+      <div class="topbar-right">
+        <button id="resetBtn" class="btn btn-ghost" title="Réinitialiser la partie">⟲ RESET</button>
+      </div>
+    </header>
+
+    <section id="gmLobby" class="center-card">
+      <h2>// SAS DE CONNEXION</h2>
+      <p id="lobbyCount">0 / 3 joueurs connectés</p>
+      <ul id="lobbyList" class="list-plain"></ul>
+      <button id="startBtn" class="btn btn-primary" disabled>▶ INITIER LA TRANSMISSION</button>
+    </section>
+
+    <section id="gmMain" class="gm-main hidden">
+      <div class="gm-grid">
+
+        <div class="gm-item-box">
+          <div class="gm-item-header">
+            <span id="gmItemCounter" class="counter">Objet 1 / 21</span>
+            <span id="gmTrainingBadge" class="training-badge hidden">🎓 ENTRAÎNEMENT</span>
+          </div>
+          <img id="gmItemImage" src="" alt="" />
+          <h2 id="gmItemName">—</h2>
+          <p class="true-value">
+            <span class="label">⚠ TRUE.VALUE — CLASSIFIED</span>
+            <strong id="gmItemTrueValue">—</strong>
+          </p>
+        </div>
+
+        <div class="gm-side">
+          <h3>// OPÉRATEURS <span id="gmTriesLabel" class="gm-tries-label">(3 essais/manche)</span></h3>
+          <ul id="playerBoard" class="player-board"></ul>
+
+          <div class="gm-actions">
+            <button id="adjudicateBtn" class="btn btn-primary big" disabled>⚡ ADJUGER</button>
+            <button id="nextItemBtn" class="btn btn-secondary big hidden">▶ NEXT TARGET</button>
+          </div>
+
+          <div id="revealedBids" class="revealed-bids hidden">
+            <h4>// DATA REVEAL</h4>
+            <p id="gmBonusBanner" class="bonus-banner hidden">⚡ OVERCLOCK ROUND // POINTS x2</p>
+            <p id="gmTrainingReveal" class="training-banner hidden">🎓 Manche d'entraînement — points non comptabilisés</p>
+            <table class="bids-table">
+              <thead>
+                <tr><th>HANDLE</th><th>ESTIMATION</th><th>ESSAIS</th><th>Δ</th><th>BONUS</th><th>CRED</th></tr>
+              </thead>
+              <tbody id="gmBidsBody"></tbody>
+            </table>
+
+            <h4 class="mini-title">// LEADERBOARD</h4>
+            <table id="gmStandings" class="standings-table">
+              <thead><tr><th>HANDLE</th><th>CRED</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <p id="gmRemaining" class="muted"></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="gmGameOver" class="center-card hidden">
+      <h2>// END.OF.LINE</h2>
+      <p class="subtitle">Transmission terminée — résultats finaux ci-dessous.</p>
+      <ol id="gmFinalScores" class="scoreboard"></ol>
+      <button id="restartBtn" class="btn btn-primary">⟲ NOUVELLE TRANSMISSION</button>
+    </section>
+
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/anas/Enchere/frontend/js/app.js"></script>
+</body>
+</html>
+ass="bids-table">
+              <thead>
+                <tr><th>HANDLE</th><th>ESTIMATION</th><th>ESSAIS</th><th>Δ</th><th>BONUS</th><th>CRED</th></tr>
+              </thead>
+              <tbody id="gmBidsBody"></tbody>
+            </table>
+
+            <h4 class="mini-title">// LEADERBOARD</h4>
+            <table id="gmStandings" class="standings-table">
+              <thead><tr><th>HANDLE</th><th>CRED</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <p id="gmRemaining" class="muted"></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="gmGameOver" class="center-card hidden">
+      <h2>// END.OF.LINE</h2>
+      <p class="subtitle">Transmission terminée — résultats finaux ci-dessous.</p>
+      <ol id="gmFinalScores" class="scoreboard"></ol>
+      <button id="restartBtn" class="btn btn-primary">⟲ NOUVELLE TRANSMISSION</button>
+    </section>
+
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/anas/Enchere/frontend/js/app.js"></script>
+</body>
+</html>
