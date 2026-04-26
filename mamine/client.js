@@ -3,7 +3,6 @@ let myRole = '';
 let currentAuthors = [];
 let myUser = null; 
 let currentPhase = 'role'; 
-let myLieText = ""; 
 
 const gifList = ['silver.gif', 'pan.gif', 'vi.gif', 'fou.gif', 'jinx.gif', 'reb.gif', 'shoot.gif', 'mad.gif', 'imad.gif'];
 function getRandomGif() { return `/mamine/asset/${gifList[Math.floor(Math.random() * gifList.length)]}`; }
@@ -19,8 +18,10 @@ function showWaitScreen(title, subtitle, showLeaderboardBtn = false) {
     document.getElementById('wait-gif').src = getRandomGif();
     document.getElementById('wait-gif').style.display = 'inline-block';
     document.getElementById('victory-podium-container').style.display = 'none';
-    document.getElementById('stats-dashboard-container').style.display = 'none'; // On cache les stats
-    document.getElementById('btn-to-leaderboards').style.display = showLeaderboardBtn ? 'block' : 'none';
+    document.getElementById('stats-dashboard-container').style.display = 'none';
+    
+    // On cache les boutons de fin par défaut
+    document.getElementById('end-game-buttons').style.display = showLeaderboardBtn ? 'flex' : 'none';
     showScreen('screen-wait');
 }
 
@@ -36,7 +37,7 @@ async function initGame() {
 }
 initGame();
 
-// --- SYSTÈME ANTI-DÉCONNEXION (PAUSE) ---
+// --- SYSTÈME ANTI-DÉCONNEXION ---
 socket.on('game_paused', (data) => {
     document.getElementById('pause-overlay').style.display = 'flex';
     document.getElementById('pause-missing-name').innerText = data.missingPlayer;
@@ -57,7 +58,7 @@ socket.on('sync_state', (state) => {
 
 socket.on('game_ended_force', () => {
     document.getElementById('pause-overlay').style.display = 'none';
-    alert("La partie a été annulée par le Maître du Jeu suite à une déconnexion.");
+    alert("La partie a été annulée. Retour au Nexus.");
     window.location.reload();
 });
 
@@ -129,6 +130,12 @@ function mjUpdateScores() {
     socket.emit('mj_force_scores', newScores);
 }
 
+function mjResetSession() {
+    if(confirm("Attention : Ceci va effacer tous les scores et remettre la salle à zéro. Confirmer ?")) {
+        socket.emit('mj_reset_session');
+    }
+}
+
 function mjStartWizard() {
     const rounds = parseInt(document.getElementById('wizard-rounds').value) || 5;
     if (rounds < 1) return alert("Veuillez choisir un nombre de manches valide.");
@@ -137,7 +144,11 @@ function mjStartWizard() {
 
 socket.on('phase_mj_preparing', () => {
     currentPhase = 'ingame'; history.pushState({ screen: 'ingame' }, '', '#ingame');
-    if (myRole === 'mj') showScreen('screen-mj-prep');
+    if (myRole === 'mj') {
+        document.getElementById('mj-prep-question').value = '';
+        document.getElementById('mj-prep-true').value = '';
+        showScreen('screen-mj-prep');
+    }
     else showWaitScreen("CONNEXION AU SERVEUR", "Le Maître du Jeu prépare la base de données...");
 });
 
@@ -156,7 +167,6 @@ socket.on('phase_writing_all', (data) => {
 function submitLie() {
     const lie = document.getElementById('player-lie').value;
     if (!lie) return;
-    myLieText = lie; 
     
     if (myRole === 'mj') socket.emit('submit_mj_lie', lie);
     else socket.emit('submit_lie', { username: myUser.username, lie: lie });
@@ -183,8 +193,11 @@ socket.on('phase_voting', (data) => {
     const container = document.getElementById('answers-container');
     container.innerHTML = '';
 
+    // CORRECTION BUG 1 : On lit la vérité depuis le serveur, infaillible même en cas de refresh
+    const myActualLie = data.playerLies[myUser.username];
+
     data.answers.forEach((ans) => {
-        if (ans === myLieText) return; 
+        if (ans === myActualLie) return; // On cache le mensonge du joueur actuel !
 
         let authorsOptions = `<option value="">Anomalie non-identifiée...</option>`;
         authorsOptions += currentAuthors.map(a => `<option value="${a.id}">Auteur probable : ${a.name}</option>`).join('');
@@ -263,7 +276,8 @@ function nextRound() { socket.emit('trigger_next_round'); }
 function endGame() { if(confirm("Voulez-vous vraiment terminer la partie et couronner le vainqueur ?")) socket.emit('trigger_end_game'); }
 
 socket.on('game_ended', async (data) => {
-    currentPhase = 'lobby'; history.pushState({ screen: 'lobby' }, '', '#lobby');
+    currentPhase = 'results'; 
+    
     let subtitle = data.winners.length > 0 ? "Victoire de : " + data.winners.join(', ') : "Le vainqueur a été déclaré !";
     
     document.getElementById('wait-title').innerHTML = `<i class="fa-solid fa-trophy"></i> PARTIE TERMINÉE`;
@@ -272,7 +286,6 @@ socket.on('game_ended', async (data) => {
     waitGif.src = `/mamine/asset/${data.winGif}`;
     waitGif.style.display = 'inline-block';
 
-    // 1. Construction du Podium
     const podiumContainer = document.getElementById('victory-podium-container');
     let podiumHTML = '<ul id="leaderboard" style="margin-top: 20px;">';
     data.finalLeaderboard.forEach((p, i) => {
@@ -287,65 +300,56 @@ socket.on('game_ended', async (data) => {
     podiumContainer.innerHTML = podiumHTML;
     podiumContainer.style.display = 'block';
 
-    // 2. Construction du Dashboard des Statistiques
-    let bestLiar = data.matchStats.players.reduce((prev, current) => (prev.victims > current.victims) ? prev : current);
-    let bestDetective = data.matchStats.players.reduce((prev, current) => (prev.truths > current.truths) ? prev : current);
-    let bestProfiler = data.matchStats.players.reduce((prev, current) => (prev.perfects > current.perfects) ? prev : current);
+    if (data.matchStats.players.length > 0) {
+        let bestLiar = data.matchStats.players.reduce((prev, current) => (prev.victims > current.victims) ? prev : current);
+        let bestDetective = data.matchStats.players.reduce((prev, current) => (prev.truths > current.truths) ? prev : current);
+        let bestProfiler = data.matchStats.players.reduce((prev, current) => (prev.perfects > current.perfects) ? prev : current);
 
-    const statsContainer = document.getElementById('stats-dashboard-container');
-    statsContainer.innerHTML = `
-        <h3 style="color:#0ac8b9; text-align:center; border-bottom: 1px solid rgba(10,200,185,0.3); padding-bottom:10px; margin-top:30px;"><i class="fa-solid fa-chart-simple"></i> PERFORMANCE GLOBALE</h3>
-        <div class="stats-grid-dashboard">
-            <div class="stat-card">
-                <i class="fa-solid fa-mask"></i>
-                <h4>Le Pire Menteur (MJ)</h4>
-                <div class="stat-val">${data.matchStats.mj.victims}</div>
-                <span class="stat-player">victimes de ${data.matchStats.mj.username}</span>
+        const statsContainer = document.getElementById('stats-dashboard-container');
+        statsContainer.innerHTML = `
+            <h3 style="color:#0ac8b9; text-align:center; border-bottom: 1px solid rgba(10,200,185,0.3); padding-bottom:10px; margin-top:30px;"><i class="fa-solid fa-chart-simple"></i> PERFORMANCE GLOBALE</h3>
+            <div class="stats-grid-dashboard">
+                <div class="stat-card">
+                    <i class="fa-solid fa-mask"></i>
+                    <h4>Le Pire Menteur (MJ)</h4>
+                    <div class="stat-val">${data.matchStats.mj.victims}</div>
+                    <span class="stat-player">victimes de ${data.matchStats.mj.username}</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-virus"></i>
+                    <h4>Le Roi de l'Illusion</h4>
+                    <div class="stat-val">${bestLiar.victims}</div>
+                    <span class="stat-player">victimes de ${bestLiar.username}</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <h4>Le Détective</h4>
+                    <div class="stat-val">${bestDetective.truths}</div>
+                    <span class="stat-player">vérités trouvées par ${bestDetective.username}</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-brain"></i>
+                    <h4>Le Génie du Profilage</h4>
+                    <div class="stat-val">${bestProfiler.perfects}</div>
+                    <span class="stat-player">sans-fautes pour ${bestProfiler.username}</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-virus"></i>
-                <h4>Le Roi de l'Illusion</h4>
-                <div class="stat-val">${bestLiar.victims}</div>
-                <span class="stat-player">victimes de ${bestLiar.username}</span>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <h4>Le Détective</h4>
-                <div class="stat-val">${bestDetective.truths}</div>
-                <span class="stat-player">vérités trouvées par ${bestDetective.username}</span>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-brain"></i>
-                <h4>Le Génie du Profilage</h4>
-                <div class="stat-val">${bestProfiler.perfects}</div>
-                <span class="stat-player">sans-fautes pour ${bestProfiler.username}</span>
-            </div>
-        </div>
-    `;
-    statsContainer.style.display = 'block';
+        `;
+        statsContainer.style.display = 'block';
+    }
 
-    document.getElementById('btn-to-leaderboards').style.display = 'block';
+    // Affichage des boutons d'action (Classement & Nouvelle Partie)
+    document.getElementById('end-game-buttons').style.display = 'flex';
     showScreen('screen-wait');
 
-    // 3. Sauvegarde des Victoires & Statistiques en Base de Données
     if (myRole === 'player') {
         const myStats = data.matchStats.players.find(p => p.username === myUser.username);
-        
-        // Sauvegarder les stats
         fetch('/api/save-stats', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                game_name: 'Le Contrebandier',
-                stats: [ { type: 'victims', value: myStats.victims }, { type: 'truths', value: myStats.truths }, { type: 'perfects', value: myStats.perfects } ]
-            })
+            body: JSON.stringify({ game_name: 'Le Contrebandier', stats: [ { type: 'victims', value: myStats.victims }, { type: 'truths', value: myStats.truths }, { type: 'perfects', value: myStats.perfects } ] })
         });
-
-        // Sauvegarder la victoire si gagnant
         if (data.winners.includes(myUser.username)) {
-            fetch('/api/add-victory', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ game_name: 'Le Contrebandier', game_url: '/mamine/contrebandier.html' })
-            });
+            fetch('/api/add-victory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ game_name: 'Le Contrebandier', game_url: '/mamine/contrebandier.html' }) });
         }
     } else if (myRole === 'mj') {
         fetch('/api/save-stats', {
@@ -354,6 +358,11 @@ socket.on('game_ended', async (data) => {
         });
     }
 });
+
+// NOUVEAU : Fonction pour relancer une partie sans F5
+function returnToLobby() {
+    socket.emit('go_to_lobby_request'); // Demande au serveur de renvoyer tout le monde au lobby
+}
 
 socket.on('go_to_lobby', () => {
     currentPhase = 'lobby'; history.pushState({ screen: 'lobby' }, '', '#lobby');

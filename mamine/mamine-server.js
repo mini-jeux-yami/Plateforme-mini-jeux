@@ -2,7 +2,6 @@ module.exports = function(io) {
     const mamineIo = io.of('/mamine');
 
     let gamePlayers = {}; 
-    // On ajoute un trackeur de stat pour le MJ
     let mjData = { socketId: null, username: null, isConnected: false, stats: { victims: 0 } };
     
     let isGameRunning = false;
@@ -29,7 +28,7 @@ module.exports = function(io) {
             gamePlayers[user.username] = { 
                 socketId: socket.id, username: user.username, profile_pic: user.profile_pic, 
                 score: 0, isReady: false, isConnected: true,
-                stats: { victims: 0, truths: 0, perfects: 0 } // NOUVEAU : Tracking des stats
+                stats: { victims: 0, truths: 0, perfects: 0 } 
             };
             broadcastLobby();
         });
@@ -62,7 +61,8 @@ module.exports = function(io) {
             const user = getUserBySocket(socket.id);
             if (!user) return;
 
-            if (isGameRunning) {
+            // CORRECTION BUG 2/3 : On ne met PAS en pause si on est sur l'écran des résultats finaux
+            if (isGameRunning && currentPhaseServer !== 'results') {
                 if (user.role === 'player') gamePlayers[user.username].isConnected = false;
                 if (user.role === 'mj') mjData.isConnected = false;
                 mamineIo.emit('game_paused', { missingPlayer: user.username });
@@ -89,6 +89,22 @@ module.exports = function(io) {
             for (let uname in newScores) {
                 if (gamePlayers[uname]) gamePlayers[uname].score = newScores[uname];
             }
+            broadcastLobby();
+        });
+
+        // NOUVEAU BOUTON : Réinitialisation d'urgence
+        socket.on('mj_reset_session', () => {
+            isGameRunning = false;
+            currentPhaseServer = 'lobby';
+            currentRoundNumber = 1;
+            for(let uname in gamePlayers) { 
+                gamePlayers[uname].score = 0; 
+                gamePlayers[uname].isReady = false; 
+                gamePlayers[uname].stats = { victims: 0, truths: 0, perfects: 0 };
+            }
+            if (mjData) mjData.stats.victims = 0;
+            currentRound = { question: "", trueAnswer: "", mjLie: "", mjLieSubmitted: false, playerLies: {}, votes: {}, allAnswers: [] };
+            mamineIo.emit('go_to_lobby');
             broadcastLobby();
         });
 
@@ -125,6 +141,7 @@ module.exports = function(io) {
                 let authorsList = Object.values(gamePlayers).map(p => ({ id: p.username, name: p.username })); 
                 authorsList.push({ id: 'MJ', name: 'Le Maître du Jeu' });
                 
+                // On envoie playerLies au front pour qu'il gère l'invisibilité
                 mamineIo.emit('phase_voting', { question: currentRound.question, answers: currentRound.allAnswers, authors: authorsList, playerLies: currentRound.playerLies });
             }
         }
@@ -136,10 +153,9 @@ module.exports = function(io) {
 
         socket.on('trigger_next_round', () => {
             currentRoundNumber++;
-            currentPhaseServer = 'lobby';
+            currentPhaseServer = 'prep'; // On retourne à la préparation MJ
             Object.values(gamePlayers).forEach(p => p.isReady = false);
-            broadcastLobby();
-            mamineIo.emit('go_to_lobby');
+            mamineIo.emit('phase_mj_preparing'); // Boucle directe sans passer par le lobby !
         });
 
         socket.on('trigger_end_game', () => {
@@ -158,7 +174,6 @@ module.exports = function(io) {
             const randomWinGif = `win${Math.floor(Math.random() * 5) + 1}.gif`;
             const finalLeaderboard = Object.values(gamePlayers).sort((a, b) => b.score - a.score);
             
-            // Compilation des statistiques pour l'envoi
             let matchStats = {
                 players: Object.values(gamePlayers).map(p => ({
                     username: p.username, profile_pic: p.profile_pic, score: p.score,
@@ -169,7 +184,7 @@ module.exports = function(io) {
 
             mamineIo.emit('game_ended', { winners: winners, finalLeaderboard: finalLeaderboard, winGif: randomWinGif, matchStats: matchStats });
 
-            // Reset pour la prochaine partie
+            // Reset pour la prochaine
             currentRoundNumber = 1;
             for(let uname in gamePlayers) { 
                 gamePlayers[uname].score = 0; 
@@ -204,13 +219,11 @@ module.exports = function(io) {
                 let vote = currentRound.votes[uname];
                 let ptsTruth = 0, ptsTrap = 0, ptsGuess = 0, ptsBonus = 0;
 
-                // Stat: A trouvé la vérité
                 if (vote.selectedTruth === currentRound.trueAnswer) {
                     ptsTruth += 2;
                     player.stats.truths++;
                 }
 
-                // Stat: Le MJ fait des victimes
                 if (vote.selectedTruth === currentRound.mjLie) {
                     mjData.stats.victims++;
                 }
@@ -223,9 +236,7 @@ module.exports = function(io) {
                     }
                 }
                 
-                // Stat: Le joueur fait des victimes
                 player.stats.victims += victimsCount;
-
                 let correctGuesses = 0;
                 let totalFalseAnswers = Object.keys(currentRound.playerLies).length + 1;
 
@@ -234,8 +245,6 @@ module.exports = function(io) {
                 }
 
                 ptsGuess = correctGuesses;
-                
-                // Stat: Profilage parfait
                 if (correctGuesses === totalFalseAnswers && totalFalseAnswers > 0) {
                     ptsBonus = 1;
                     player.stats.perfects++;

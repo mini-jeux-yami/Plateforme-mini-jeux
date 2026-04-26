@@ -56,7 +56,8 @@
                     <input type="number" id="wizard-rounds" min="1" max="50" value="5" style="background: rgba(0,0,0,0.5); color:#fff; border: 1px solid #0ac8b9; padding: 10px; width: 100%; border-radius: 8px;">
                 </div>
                 <button id="btn-mj-start-wizard" class="btn-primary" onclick="mjStartWizard()" disabled><i class="fa-solid fa-play"></i> Démarrer la préparation</button>
-                <p style="font-size: 12px; color: #94a3b8; margin-top:10px;">Tous les joueurs doivent être "Prêt" pour lancer.</p>
+                
+                <button class="btn-logout" onclick="mjResetSession()" style="margin-top:15px; width:100%; border-color:#ff4444;"><i class="fa-solid fa-triangle-exclamation"></i> Forcer la réinitialisation de la salle</button>
                 
                 <div class="divider" style="margin: 20px 0;"></div>
                 
@@ -140,7 +141,10 @@
             
             <div id="stats-dashboard-container" style="display: none; width: 100%; margin-top: 30px;"></div>
 
-            <a href="/leaderboards.html" id="btn-to-leaderboards" class="btn-leaderboard" style="display: none; margin-top: 20px;">Aller voir le classement mondial</a>
+            <div id="end-game-buttons" style="display: none; justify-content: center; gap: 15px; margin-top: 30px;">
+                <button class="btn-secondary" onclick="returnToLobby()" style="margin: 0; width: auto;"><i class="fa-solid fa-rotate-right"></i> Nouvelle Partie</button>
+                <a href="/leaderboards.html" class="btn-leaderboard" style="margin: 0; width: auto;"><i class="fa-solid fa-trophy"></i> Voir le classement</a>
+            </div>
         </div>
     </div>
 
