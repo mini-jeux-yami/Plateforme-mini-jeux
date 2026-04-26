@@ -160,6 +160,7 @@ app.get('/api/leaderboards', (req, res) => {
 // 4. DELEGATION DES JEUX (Architecture Modulaire)
 // ==============================================================================
 require('./mamine/mamine-server.js')(io);
+require('./anas/Enchere/enchere-server.js')(io);
 
 // ==============================================================================
 // 5. LANCEMENT DU SERVEUR

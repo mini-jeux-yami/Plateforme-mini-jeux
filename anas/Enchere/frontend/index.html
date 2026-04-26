@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/anas/Enchere/frontend/css/style.css" />
 </head>
 <body>
   <!-- Décor cyberpunk -->
@@ -105,6 +105,16 @@
           3 estimateurs &middot; 1 commissaire-priseur &middot; 3 essais &middot; signal crypté.
         </p>
 
+        <!-- Bandeau profil plateforme (affiché si connecté) -->
+        <div id="profileBanner" class="profile-banner hidden">
+          <img id="lobbyAvatar" src="/asset/default.png" alt="Avatar"
+               onerror="this.src='https://via.placeholder.com/48/0a0316/00fff9?text=?'" class="lobby-avatar" />
+          <div class="profile-banner-info">
+            <span id="lobbyUsername" class="profile-banner-name">—</span>
+            <span class="profile-banner-badge">// OPÉRATEUR IDENTIFIÉ</span>
+          </div>
+        </div>
+
         <form id="joinForm" class="lobby-form" autocomplete="off">
           <label for="pseudo">&gt; ENTER HANDLE</label>
           <input id="pseudo" name="pseudo" type="text" maxlength="20"
@@ -121,8 +131,10 @@
 
         <p id="lobbyMessage" class="lobby-message" role="status" aria-live="polite"></p>
 
-        <p class="lobby-test-link">
-          <a href="/test.html">▣ DEV.MODE — 4 rôles dans une seule fenêtre</a>
+        <p style="margin-top:1rem;">
+          <a href="/anas/index.html" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);">
+            ← Retour à l'espace d'Anas
+          </a>
         </p>
       </main>
 
@@ -136,6 +148,9 @@
 
     <header class="topbar">
       <div class="topbar-left">
+        <img id="playerAvatar" src="/asset/default.png" alt=""
+             onerror="this.src='https://via.placeholder.com/32/0a0316/ff2bd6?text=?'"
+             class="topbar-avatar" />
         <span class="chip chip-role">★ ESTIMATEUR</span>
         <span id="playerPseudo" class="pseudo">—</span>
       </div>
@@ -241,6 +256,9 @@
 
     <header class="topbar">
       <div class="topbar-left">
+        <img id="gmAvatar" src="/asset/default.png" alt=""
+             onerror="this.src='https://via.placeholder.com/32/0a0316/00fff9?text=?'"
+             class="topbar-avatar topbar-gm-avatar" />
         <span class="chip chip-role chip-gm">⚙ COMMISSAIRE</span>
         <span id="gmPseudo" class="pseudo">—</span>
       </div>
@@ -314,6 +332,38 @@
   </section>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
+  <script src="/anas/Enchere/frontend/js/app.js"></script>
+</body>
+</html>
+ass="bids-table">
+              <thead>
+                <tr><th>HANDLE</th><th>ESTIMATION</th><th>ESSAIS</th><th>Δ</th><th>BONUS</th><th>CRED</th></tr>
+              </thead>
+              <tbody id="gmBidsBody"></tbody>
+            </table>
+
+            <h4 class="mini-title">// LEADERBOARD</h4>
+            <table id="gmStandings" class="standings-table">
+              <thead><tr><th>HANDLE</th><th>CRED</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <p id="gmRemaining" class="muted"></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="gmGameOver" class="center-card hidden">
+      <h2>// END.OF.LINE</h2>
+      <p class="subtitle">Transmission terminée — résultats finaux ci-dessous.</p>
+      <ol id="gmFinalScores" class="scoreboard"></ol>
+      <button id="restartBtn" class="btn btn-primary">⟲ NOUVELLE TRANSMISSION</button>
+    </section>
+
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/anas/Enchere/frontend/js/app.js"></script>
 </body>
 </html>

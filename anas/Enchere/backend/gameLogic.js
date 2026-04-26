@@ -99,7 +99,7 @@ function loadItems() {
     items.push({
       id:        file,
       name:      meta.name,
-      image:     `/images/${encodeURIComponent(file)}`,
+      image:     `/anas/Enchere/frontend/images/${encodeURIComponent(file)}`,
       trueValue: meta.trueValue,
       training:  meta.training,
     });
@@ -122,11 +122,12 @@ function shuffle(arr) {
 
 function getPublicPlayer(p) {
   return {
-    socketId:  p.socketId,
-    pseudo:    p.pseudo,
-    points:    p.points,
-    hasBid:    p.hasBid,       // true = tous les essais utilisés
-    triesUsed: p.triesUsed,
+    socketId:   p.socketId,
+    pseudo:     p.pseudo,
+    profile_pic: p.profile_pic || '/asset/default.png',
+    points:     p.points,
+    hasBid:     p.hasBid,       // true = tous les essais utilisés
+    triesUsed:  p.triesUsed,
   };
 }
 
@@ -174,10 +175,11 @@ function getItemForGM() { return getCurrentItem(); }
 function canJoinAsPlayer() { return gameState.players.length < MAX_PLAYERS; }
 function canJoinAsGM()     { return gameState.gm === null; }
 
-function makePlayer(socketId, pseudo) {
+function makePlayer(socketId, pseudo, profile_pic) {
   return {
     socketId,
     pseudo:      (pseudo || 'Joueur').trim().slice(0, 20),
+    profile_pic: profile_pic || '/asset/default.png',
     points:      0,
     hasBid:      false,   // true quand triesUsed >= MAX_TRIES
     currentBid:  null,    // dernier essai soumis (utilisé pour le scoring)
@@ -186,17 +188,25 @@ function makePlayer(socketId, pseudo) {
   };
 }
 
-function addPlayer(socketId, pseudo) {
+function addPlayer(socketId, pseudo, profile_pic) {
   if (!canJoinAsPlayer()) return { ok: false, error: 'La partie est complète (3 joueurs max).' };
-  const player = makePlayer(socketId, pseudo);
+  const player = makePlayer(socketId, pseudo, profile_pic);
   gameState.players.push(player);
   return { ok: true, player };
 }
 
-function addGM(socketId, pseudo) {
+function addGM(socketId, pseudo, profile_pic) {
   if (!canJoinAsGM()) return { ok: false, error: 'Un Maître du Jeu est déjà connecté.' };
-  gameState.gm = { socketId, pseudo: (pseudo || 'MJ').trim().slice(0, 20) };
+  gameState.gm = {
+    socketId,
+    pseudo: (pseudo || 'MJ').trim().slice(0, 20),
+    profile_pic: profile_pic || '/asset/default.png',
+  };
   return { ok: true, gm: gameState.gm };
+}
+
+function getGMSocketId() {
+  return gameState.gm ? gameState.gm.socketId : null;
 }
 
 function removeBySocketId(socketId) {
@@ -306,7 +316,7 @@ function adjudicate() {
   const bids = gameState.players.map(p => {
     const amount   = p.currentBid;   // null si aucun essai soumis
     const distance = amount == null ? Infinity : Math.abs(amount - trueValue);
-    return { socketId: p.socketId, pseudo: p.pseudo, amount, distance, triesUsed: p.triesUsed, allBids: [...p.currentBids] };
+    return { socketId: p.socketId, pseudo: p.pseudo, profile_pic: p.profile_pic || '/asset/default.png', amount, distance, triesUsed: p.triesUsed, allBids: [...p.currentBids] };
   });
 
   const submittedDistances = bids.filter(b => b.amount != null).map(b => b.distance);
@@ -341,7 +351,7 @@ function adjudicate() {
   }
 
   const standings = gameState.players
-    .map(p => ({ pseudo: p.pseudo, points: p.points }))
+    .map(p => ({ pseudo: p.pseudo, profile_pic: p.profile_pic || '/asset/default.png', points: p.points }))
     .sort((a, b) => b.points - a.points);
 
   const result = {
@@ -387,7 +397,7 @@ function nextItem() {
 
 function computeFinalScores() {
   return gameState.players
-    .map(p => ({ pseudo: p.pseudo, points: p.points }))
+    .map(p => ({ pseudo: p.pseudo, profile_pic: p.profile_pic || '/asset/default.png', points: p.points }))
     .sort((a, b) => b.points - a.points);
 }
 
@@ -405,6 +415,20 @@ module.exports = {
   getPublicState, getItemForPlayers, getItemForGM, getCurrentItem,
   canJoinAsPlayer, canJoinAsGM, addPlayer, addGM, removeBySocketId,
   startGame, placeBid, allPlayersBid, adjudicate, nextItem,
-  computeFinalScores, resetGame, loadItems, shuffle,
+  computeFinalScores, resetGame, loadItems, shuffle, getGMSocketId,
+  MAX_PLAYERS, MAX_TRIES, TOLERANCE_PCT, BONUS_EVERY,
+};
+urrentItemIndex = 0;
+  gameState.realRoundCount   = 0;
+  gameState.phase            = 'lobby';
+  gameState.lastRoundResult  = null;
+  gameState.items            = [];
+}
+
+module.exports = {
+  getPublicState, getItemForPlayers, getItemForGM, getCurrentItem,
+  canJoinAsPlayer, canJoinAsGM, addPlayer, addGM, removeBySocketId,
+  startGame, placeBid, allPlayersBid, adjudicate, nextItem,
+  computeFinalScores, resetGame, loadItems, shuffle, getGMSocketId,
   MAX_PLAYERS, MAX_TRIES, TOLERANCE_PCT, BONUS_EVERY,
 };

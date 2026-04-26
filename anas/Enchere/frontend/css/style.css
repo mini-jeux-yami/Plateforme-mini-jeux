@@ -1437,3 +1437,108 @@ ol.rules-list { padding-left: 1.4rem; }
   box-shadow: 0 0 6px var(--secondary-glow);
 }
 .tries-none { color: var(--text-dim); font-size: 0.85rem; }
+
+/* ============================================================
+   INTÉGRATION PROFIL PLATEFORME
+   Avatars dans le lobby, la topbar, les tableaux
+   ============================================================ */
+
+/* --- Bandeau profil dans le lobby --- */
+.profile-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: rgba(10, 3, 22, 0.8);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--neon-cyan);
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  margin-bottom: 1.2rem;
+  font-family: var(--font-ui);
+}
+.lobby-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--neon-cyan);
+  object-fit: cover;
+  box-shadow: 0 0 10px rgba(0,255,249,0.35);
+  flex-shrink: 0;
+}
+.profile-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.profile-banner-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.profile-banner-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+/* --- Avatar dans la topbar --- */
+.topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--neon-magenta);
+  object-fit: cover;
+  margin-right: 0.5rem;
+  box-shadow: 0 0 8px var(--primary-glow);
+  flex-shrink: 0;
+}
+.topbar-gm-avatar {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--secondary-glow);
+}
+
+/* --- Avatar dans les tableaux et le board joueur --- */
+.player-avatar-sm {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-hot);
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+.standings-table .player-avatar-sm,
+.bids-table .player-avatar-sm {
+  border-color: var(--neon-purple);
+}
+
+/* --- Avatar dans le board MJ (player-row) --- */
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.row-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* --- Avatar dans les scores finaux --- */
+.final-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--neon-yellow);
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}

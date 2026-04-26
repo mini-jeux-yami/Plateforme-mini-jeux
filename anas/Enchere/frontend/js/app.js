@@ -1,10 +1,12 @@
 /**
- * app.js — v2
- * Nouveautés :
- *   - 3 essais par manche avec flèche directionnelle après chaque essai
- *   - Manche d'entraînement (bannière + points non comptés)
- *   - Tableau bids enrichi (colonne essais utilisés)
- *   - Dots tricolores dans le tableau MJ (0=rouge, partiel=orange, done=vert)
+ * app.js — v3 (intégration profil plateforme)
+ * Nouveautés v3 :
+ *   - Vérification de session /api/me au chargement
+ *   - Redirection vers / si non connecté
+ *   - Pseudo pré-rempli depuis le profil plateforme
+ *   - profile_pic transmis au serveur via l'événement join
+ *   - Avatars affichés dans la topbar, le board MJ, les tableaux
+ *   - Connexion socket.io sur le namespace /enchere
  */
 
 (function () {
@@ -27,6 +29,12 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+  function avatarImg(profile_pic, cssClass, alt) {
+    const src = escapeHtml(profile_pic || '/asset/default.png');
+    const fallback = `this.onerror=null;this.src='https://via.placeholder.com/32/0a0316/ff2bd6?text=?'`;
+    return `<img src="${src}" alt="${escapeHtml(alt || '')}" class="${cssClass}" onerror="${fallback}">`;
+  }
+
   function switchView(name) {
     ['view-lobby', 'view-player', 'view-gm'].forEach(id => hide($(id)));
     show($('view-' + name));
@@ -39,7 +47,7 @@
       const tr = document.createElement('tr');
       if (r.pseudo === app.pseudo) tr.classList.add('me');
       tr.innerHTML =
-        `<td>${escapeHtml(r.pseudo)}</td>` +
+        `<td>${avatarImg(r.profile_pic, 'player-avatar-sm', r.pseudo)}${escapeHtml(r.pseudo)}</td>` +
         `<td class="num points">${r.points || 0}</td>`;
       tbody.appendChild(tr);
     }
@@ -69,11 +77,10 @@
       if (r.withinPct) badges.push('<span class="badge-pts within">±5 %</span>');
       if (r.closest)   badges.push('<span class="badge-pts closest">📏 proche</span>');
 
-      // Historique des essais (petites pastilles)
       const triesHTML = buildTriesHTML(r.allBids || [], r.amount, maxTries || 3);
 
       tr.innerHTML =
-        `<td>${escapeHtml(r.pseudo)}</td>` +
+        `<td>${avatarImg(r.profile_pic, 'player-avatar-sm', r.pseudo)}${escapeHtml(r.pseudo)}</td>` +
         `<td class="num">${guess}</td>` +
         `<td class="bids-tries">${triesHTML}</td>` +
         `<td class="num">${delta}</td>` +
@@ -104,12 +111,53 @@
 
   // État local côté client
   const app = {
-    socket: null,
-    role:   null,
-    pseudo: null,
-    maxTries: 3,
-    currentTry: 1,
+    socket:      null,
+    role:        null,
+    pseudo:      null,
+    profile_pic: '/asset/default.png',
+    maxTries:    3,
+    currentTry:  1,
+    autoJoin:    false,
   };
+
+  // ============================================================
+  // INTÉGRATION PROFIL PLATEFORME
+  // Charge /api/me et pré-remplit le formulaire de lobby.
+  // Redirige vers / si l'utilisateur n'est pas connecté.
+  // ============================================================
+
+  function initPlatformProfile() {
+    return fetch('/api/me')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.loggedIn) {
+          window.location.href = '/';
+          return;
+        }
+        const user = data.user;
+        app.profile_pic = user.profile_pic || '/asset/default.png';
+
+        // Bandeau profil dans le lobby
+        const $banner   = $('profileBanner');
+        const $avatar   = $('lobbyAvatar');
+        const $username = $('lobbyUsername');
+        if ($banner && $avatar && $username) {
+          $avatar.src           = app.profile_pic;
+          $username.textContent = user.username;
+          show($banner);
+        }
+
+        // Pré-remplir le champ pseudo
+        const $pseudo = $('pseudo');
+        if ($pseudo && !$pseudo.value) {
+          $pseudo.value = user.username;
+        }
+      })
+      .catch(() => {
+        // En cas d'erreur réseau, on laisse l'utilisateur continuer
+        console.warn('[enchere] Impossible de récupérer le profil plateforme.');
+      });
+  }
 
   // ============================================================
   // VUE LOBBY
@@ -130,8 +178,12 @@
     app.pseudo = pseudo;
     app.role   = role;
 
-    if (!app.socket) { app.socket = io(); bindSocket(app.socket); }
-    const emitJoin = () => app.socket.emit('join', { pseudo, role });
+    if (!app.socket) { app.socket = io('/enchere'); bindSocket(app.socket); }
+    const emitJoin = () => app.socket.emit('join', {
+      pseudo,
+      role,
+      profile_pic: app.profile_pic,
+    });
     if (app.socket.connected) emitJoin();
     else app.socket.once('connect', emitJoin);
   }
@@ -145,8 +197,12 @@
   });
 
   const _params = new URLSearchParams(window.location.search);
-  app.autoJoin = _params.get('role') && _params.get('pseudo');
-  if (app.autoJoin) doJoin(_params.get('pseudo'), _params.get('role'));
+  app.autoJoin = !!((_params.get('role') && _params.get('pseudo')));
+  if (app.autoJoin) {
+    // Mode test : join automatique, profile_pic depuis l'URL ou par défaut
+    app.profile_pic = _params.get('profile_pic') || '/asset/default.png';
+    doJoin(_params.get('pseudo'), _params.get('role'));
+  }
 
   function backToLobby(errorMsg) {
     app.role = null;
@@ -188,7 +244,7 @@
     });
 
     socket.on('waitingForOthers', () => {
-      // Conservé pour compatibilité mais non utilisé dans v2
+      // Conservé pour compatibilité
     });
 
     socket.on('bidPlaced', ({ pseudo }) => {
@@ -224,12 +280,13 @@
   // VUE JOUEUR
   // ============================================================
 
-  const $playerPseudo    = $('playerPseudo');
-  const $playerPoints    = $('playerPoints');
-  const $waitingRoom     = $('waitingRoom');
-  const $waitingList     = $('waitingList');
-  const $auctionZone     = $('auctionZone');
-  const $playerGameOver  = $('playerGameOver');
+  const $playerPseudo      = $('playerPseudo');
+  const $playerAvatar      = $('playerAvatar');
+  const $playerPoints      = $('playerPoints');
+  const $waitingRoom       = $('waitingRoom');
+  const $waitingList       = $('waitingList');
+  const $auctionZone       = $('auctionZone');
+  const $playerGameOver    = $('playerGameOver');
   const $playerFinalScores = $('playerFinalScores');
   const $playerItemCounter = $('playerItemCounter');
   const $playerItemImage   = $('playerItemImage');
@@ -255,6 +312,10 @@
   function enterPlayerView(you, state, item) {
     switchView('player');
     $playerPseudo.textContent = you.pseudo;
+    // Avatar topbar
+    if ($playerAvatar) {
+      $playerAvatar.src = app.profile_pic;
+    }
     $playerPoints.textContent = String(you.points || 0);
     hide($playerGameOver);
     hide($resultModal);
@@ -271,7 +332,7 @@
       $waitingList.innerHTML = '';
       state.players.forEach(p => {
         const li = document.createElement('li');
-        li.textContent = `• ${p.pseudo}`;
+        li.innerHTML = `${avatarImg(p.profile_pic, 'player-avatar-sm', p.pseudo)} • ${escapeHtml(p.pseudo)}`;
         $waitingList.appendChild(li);
       });
       if (state.gm) {
@@ -296,18 +357,6 @@
         `Objet ${Math.min(state.currentItemIndex + 1, state.totalItems)} / ${state.totalItems}`;
     }
 
-    // Bandeau manche bonus
-    if ($bonusBanner) {
-      const isBonus = !state.currentRoundIsTraining && state.phase === 'bidding' && state.nextRoundIsBonus === false
-        ? false  // nextRoundIsBonus = prochain → on affiche si CETTE manche est bonus
-        : false;
-      // On utilise une autre logique : est-ce que cette manche est bonus ?
-      // La manche courante est bonus si realRoundCount+1 % 10 === 0
-      // Le serveur envoie nextRoundIsBonus pour la PROCHAINE manche
-      // On affiche bonus si le serveur a envoyé l'info sur la manche précédente
-      // Simplifié : bonus-banner piloté uniquement par itemUpdate/roundResult
-    }
-
     // Bannière entraînement
     if ($trainingBanner) {
       if (state.currentRoundIsTraining && state.phase === 'bidding') show($trainingBanner);
@@ -316,9 +365,7 @@
 
     // Sync essai courant depuis l'état du joueur
     if (me && state.phase === 'bidding') {
-      const nextTry = (me.triesUsed || 0) + 1;
       updateTryUI(me.triesUsed || 0);
-      // Si le joueur a déjà utilisé tous ses essais → overlay
       if (me.hasBid) lockBidForm();
     }
   }
@@ -347,11 +394,6 @@
     });
   }
 
-  /**
-   * Affiche l'indice directionnel après un essai.
-   * direction: 'higher' | 'lower' | 'exact'
-   * big: boolean (>50% → double flèche)
-   */
   function showBidHint(hint) {
     const { direction, big, tryNumber, isFinal, amount } = hint;
     updateTryUI(tryNumber);
@@ -384,10 +426,8 @@
     }
 
     if (isFinal) {
-      // Dernier essai : bloquer le formulaire + afficher l'overlay
       lockBidForm();
     } else {
-      // Essais restants : effacer le champ, focus
       $bidAmount.value = '';
       $bidAmount.focus();
     }
@@ -426,14 +466,12 @@
       if ($bidError) $bidError.textContent = 'Saisissez un nombre valide.';
       return;
     }
-    // Envoi de l'essai courant
     app.socket.emit('placeBid', { amount: val });
   });
 
   $closeResult && $closeResult.addEventListener('click', () => hide($resultModal));
 
   function showPlayerResultModal(result) {
-    // Entraînement ?
     if ($trainingResultBanner) {
       if (result.isTraining) show($trainingResultBanner);
       else hide($trainingResultBanner);
@@ -463,6 +501,7 @@
       const li = document.createElement('li');
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
       li.innerHTML =
+        `${avatarImg(s.profile_pic, 'final-avatar', s.pseudo)}` +
         `<strong>${medal} ${escapeHtml(s.pseudo)}</strong>` +
         ` — <span class="score">${s.points || 0} pts</span>`;
       $playerFinalScores.appendChild(li);
@@ -473,34 +512,39 @@
   // VUE MJ
   // ============================================================
 
-  const $gmPseudo    = $('gmPseudo');
-  const $gmLobby     = $('gmLobby');
-  const $gmMain      = $('gmMain');
-  const $gmGameOver  = $('gmGameOver');
-  const $lobbyCount  = $('lobbyCount');
-  const $lobbyList   = $('lobbyList');
-  const $startBtn    = $('startBtn');
-  const $gmItemCounter  = $('gmItemCounter');
-  const $gmItemImage    = $('gmItemImage');
-  const $gmItemName     = $('gmItemName');
+  const $gmPseudo        = $('gmPseudo');
+  const $gmAvatar        = $('gmAvatar');
+  const $gmLobby         = $('gmLobby');
+  const $gmMain          = $('gmMain');
+  const $gmGameOver      = $('gmGameOver');
+  const $lobbyCount      = $('lobbyCount');
+  const $lobbyList       = $('lobbyList');
+  const $startBtn        = $('startBtn');
+  const $gmItemCounter   = $('gmItemCounter');
+  const $gmItemImage     = $('gmItemImage');
+  const $gmItemName      = $('gmItemName');
   const $gmItemTrueValue = $('gmItemTrueValue');
   const $gmTrainingBadge = $('gmTrainingBadge');
-  const $playerBoard    = $('playerBoard');
-  const $adjudicateBtn  = $('adjudicateBtn');
-  const $nextItemBtn    = $('nextItemBtn');
-  const $revealedBids   = $('revealedBids');
-  const $gmBidsBody     = $('gmBidsBody');
-  const $gmBonusBanner  = $('gmBonusBanner');
+  const $playerBoard     = $('playerBoard');
+  const $adjudicateBtn   = $('adjudicateBtn');
+  const $nextItemBtn     = $('nextItemBtn');
+  const $revealedBids    = $('revealedBids');
+  const $gmBidsBody      = $('gmBidsBody');
+  const $gmBonusBanner   = $('gmBonusBanner');
   const $gmTrainingReveal = $('gmTrainingReveal');
   const $gmStandingsBody = document.querySelector('#gmStandings tbody');
-  const $gmRemaining    = $('gmRemaining');
-  const $gmFinalScores  = $('gmFinalScores');
-  const $resetBtn       = $('resetBtn');
-  const $restartBtn     = $('restartBtn');
+  const $gmRemaining     = $('gmRemaining');
+  const $gmFinalScores   = $('gmFinalScores');
+  const $resetBtn        = $('resetBtn');
+  const $restartBtn      = $('restartBtn');
 
   function enterGMView(you, state, item) {
     switchView('gm');
     $gmPseudo.textContent = you.pseudo;
+    // Avatar topbar MJ
+    if ($gmAvatar) {
+      $gmAvatar.src = app.profile_pic;
+    }
     hide($gmGameOver);
     hide($revealedBids);
     if (item) gmRenderItem(item);
@@ -517,7 +561,7 @@
       $lobbyList.innerHTML = '';
       state.players.forEach(p => {
         const li = document.createElement('li');
-        li.textContent = `• ${p.pseudo}`;
+        li.innerHTML = `${avatarImg(p.profile_pic, 'player-avatar-sm', p.pseudo)} • ${escapeHtml(p.pseudo)}`;
         $lobbyList.appendChild(li);
       });
       $startBtn.disabled = !(nb === 3 && state.gm);
@@ -532,7 +576,6 @@
     $gmItemCounter.textContent =
       `Objet ${Math.min(state.currentItemIndex + 1, state.totalItems)} / ${state.totalItems}`;
 
-    // Badge entraînement
     if ($gmTrainingBadge) {
       if (state.currentRoundIsTraining) show($gmTrainingBadge);
       else hide($gmTrainingBadge);
@@ -541,7 +584,6 @@
     renderPlayerBoard(state.players, state.maxTries || 3);
 
     if (state.phase === 'bidding') {
-      // Le bouton Adjuger s'active quand TOUS les joueurs ont terminé leurs 3 essais
       const allDone = state.players.length > 0 && state.players.every(p => p.hasBid);
       $adjudicateBtn.disabled = !allDone;
     }
@@ -579,6 +621,9 @@
       }
 
       li.innerHTML = `
+        <img src="${escapeHtml(p.profile_pic || '/asset/default.png')}" alt="${escapeHtml(p.pseudo)}"
+             class="row-avatar"
+             onerror="this.onerror=null;this.src='https://via.placeholder.com/28/0a0316/ff2bd6?text=?'">
         <span class="dot ${dotClass}"></span>
         <span class="row-name">${escapeHtml(p.pseudo)}</span>
         <span class="row-points">${p.points || 0} pts</span>
@@ -618,6 +663,7 @@
       const li = document.createElement('li');
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
       li.innerHTML =
+        `${avatarImg(s.profile_pic, 'final-avatar', s.pseudo)}` +
         `<strong>${medal} ${escapeHtml(s.pseudo)}</strong>` +
         ` — <span class="score">${s.points || 0} pts</span>`;
       $gmFinalScores.appendChild(li);
@@ -656,6 +702,71 @@
     if ($gmTrainingReveal) hide($gmTrainingReveal);
     $playerBoard.innerHTML = '';
     $lobbyList.innerHTML = '';
+  }
+
+  // ============================================================
+  // DÉMARRAGE : vérifier la session plateforme, puis afficher le lobby
+  // ============================================================
+
+  // En mode autoJoin (test via URL params), on skip la vérification
+  if (!app.autoJoin) {
+    initPlatformProfile();
+  }
+
+})();
+nalScores.innerHTML = '';
+    finalScores.forEach((s, i) => {
+      const li = document.createElement('li');
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+      li.innerHTML =
+        `${avatarImg(s.profile_pic, 'final-avatar', s.pseudo)}` +
+        `<strong>${medal} ${escapeHtml(s.pseudo)}</strong>` +
+        ` — <span class="score">${s.points || 0} pts</span>`;
+      $gmFinalScores.appendChild(li);
+    });
+  }
+
+  $startBtn    && $startBtn.addEventListener('click', () => app.socket.emit('startGame'));
+  $adjudicateBtn && $adjudicateBtn.addEventListener('click', () => app.socket.emit('adjudicate'));
+  $nextItemBtn && $nextItemBtn.addEventListener('click', () => app.socket.emit('nextItem'));
+  $resetBtn    && $resetBtn.addEventListener('click', () => {
+    if (confirm('Réinitialiser la partie ? Tous les joueurs seront renvoyés au lobby.'))
+      app.socket.emit('resetGame');
+  });
+  $restartBtn  && $restartBtn.addEventListener('click', () => app.socket.emit('resetGame'));
+
+  // ============================================================
+  // Reset complet de l'UI
+  // ============================================================
+
+  function resetAllUI() {
+    hide($auctionZone);
+    hide($playerGameOver);
+    hide($resultModal);
+    show($waitingRoom);
+    $waitingList.innerHTML = '';
+    resetBidForm();
+    $playerPoints.textContent = '0';
+    hide($bonusBanner);
+    hide($trainingBanner);
+
+    show($gmLobby);
+    hide($gmMain);
+    hide($gmGameOver);
+    hide($revealedBids);
+    if ($gmBonusBanner) hide($gmBonusBanner);
+    if ($gmTrainingReveal) hide($gmTrainingReveal);
+    $playerBoard.innerHTML = '';
+    $lobbyList.innerHTML = '';
+  }
+
+  // ============================================================
+  // DÉMARRAGE : vérifier la session plateforme, puis afficher le lobby
+  // ============================================================
+
+  // En mode autoJoin (test via URL params), on skip la vérification
+  if (!app.autoJoin) {
+    initPlatformProfile();
   }
 
 })();
