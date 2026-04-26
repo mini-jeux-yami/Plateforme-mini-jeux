@@ -177,7 +177,6 @@ app.get('/api/leaderboards', (req, res) => {
 });
 
 // ==============================================================================
-<<<<<<< HEAD
 // 4. LE CHAT GLOBAL
 // ==========================================
 const chatIo = io.of('/chat');
@@ -221,12 +220,7 @@ chatIo.on('connection', (socket) => {
 
 require('./mamine/mamine-server.js')(io);
 require('./imad/imad-server.js')(io);
-=======
-// 4. DELEGATION DES JEUX (Architecture Modulaire)
-// ==============================================================================
-require('./mamine/mamine-server.js')(io);
 require('./anas/Enchere/enchere-server.js')(io);
->>>>>>> c7ebedf5fb4583d33422f260cdf8fa80e36ec252
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Serveur Arcade lancé sur le port ${PORT}`));

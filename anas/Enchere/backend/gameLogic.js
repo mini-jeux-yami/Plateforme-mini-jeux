@@ -423,7 +423,6 @@ urrentItemIndex = 0;
   gameState.phase            = 'lobby';
   gameState.lastRoundResult  = null;
   gameState.items            = [];
-}
 
 module.exports = {
   getPublicState, getItemForPlayers, getItemForGM, getCurrentItem,
