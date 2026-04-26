@@ -47,8 +47,19 @@
             </div>
 
             <div id="profile-edit-box" style="display: none;" class="edit-box">
-                <input type="text" id="new-avatar-url" placeholder="URL de la nouvelle image (http...)">
-                <button onclick="updateProfilePic()" class="btn-primary btn-small">Sauvegarder</button>
+                <div class="edit-option">
+                    <p class="instruction" style="margin-bottom: 8px; font-size: 13px;"><i class="fa-solid fa-upload"></i> Envoyer une image</p>
+                    <input type="file" id="avatar-upload-file" accept="image/png, image/jpeg, image/gif, image/webp" class="file-input">
+                    <button onclick="uploadProfilePicFile()" class="btn-secondary btn-small">Mettre en ligne</button>
+                </div>
+                
+                <div class="vertical-divider"></div>
+
+                <div class="edit-option">
+                    <p class="instruction" style="margin-bottom: 8px; font-size: 13px;"><i class="fa-solid fa-link"></i> Utiliser une URL Web</p>
+                    <input type="text" id="new-avatar-url" placeholder="http://...">
+                    <button onclick="updateProfilePic()" class="btn-primary btn-small">Sauvegarder l'URL</button>
+                </div>
             </div>
 
             <div class="divider"></div>

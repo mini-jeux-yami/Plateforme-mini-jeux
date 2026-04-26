@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>EL CARTEL</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="cartel-style.css">
+</head>
+<body>
+    <div id="app-container">
+        
+        <div id="screen-role" class="screen active">
+            <h1 class="logo-box"><i class="fa-solid fa-skull"></i> EL CARTEL</h1>
+            <p class="instruction">Plata o Plomo. Connecté en tant que : <strong id="display-username" style="color:#e5c07b;"></strong></p>
+            <div class="divider"></div>
+            <button onclick="joinAsCartel()" class="btn-primary"><i class="fa-solid fa-gun"></i> Diriger un Cartel (3 max)</button>
+            <button onclick="joinAsPolitician()" class="btn-secondary"><i class="fa-solid fa-building-columns"></i> Être le Politicien (MJ)</button>
+            <div class="divider"></div>
+            <a href="/imad/index.html" class="btn-text" style="text-decoration:none;"><i class="fa-solid fa-arrow-left"></i> Fuir vers le Hub d'Imad</a>
+        </div>
+
+        <div id="screen-lobby" class="screen">
+            <h2><i class="fa-solid fa-users"></i> SALLE DE RÉUNION SECRÈTE</h2>
+            <p class="instruction">En attente des associés...</p>
+            
+            <h3 class="panel-title" style="text-align:center;">LES CARTELS (3 requis)</h3>
+            <ul id="cartel-list"></ul>
+            
+            <h3 class="panel-title" style="text-align:center; margin-top:20px;">LE POLITICIEN CORROMPU</h3>
+            <ul id="politician-list"></ul>
+            
+            <div id="mj-controls" style="display: none; margin-top: 30px;">
+                <button id="btn-start-game" class="btn-primary" onclick="startGame()" disabled><i class="fa-solid fa-play"></i> Lancer la partie</button>
+            </div>
+            
+            <div class="divider"></div>
+            <button onclick="leaveRole()" class="btn-text"><i class="fa-solid fa-door-open"></i> Quitter la table (Retour)</button>
+        </div>
+
+        <div id="screen-game" class="screen">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0;"><i class="fa-solid fa-calendar-days"></i> TOUR <span id="display-turn">1</span></h2>
+                <div style="text-align: right;">
+                    <span id="role-badge" style="background:#d32f2f; color:#fff; padding:5px 10px; font-family:'Special Elite'; border-radius:2px;"></span>
+                </div>
+            </div>
+
+            <div class="bank-display">
+                <i class="fa-solid fa-sack-dollar"></i> BANQUE SECRÈTE : <span id="display-bank">0</span> $
+            </div>
+
+            <div class="game-grid">
+                <div class="column-left">
+                    <div class="panel">
+                        <h3 class="panel-title"><i class="fa-solid fa-chart-line"></i> COURS DU MARCHÉ</h3>
+                        <div id="market-display"></div>
+                    </div>
+                    
+                    <div class="panel" style="margin-top:20px;">
+                        <h3 class="panel-title"><i class="fa-solid fa-newspaper"></i> LA RUE (Historique)</h3>
+                        <div class="log-box" id="log-display"></div>
+                    </div>
+
+                    <div id="politician-intel-panel" class="panel" style="display: none; margin-top:20px;">
+                        <h3 class="panel-title"><i class="fa-solid fa-eye"></i> RAPPORTS DE POLICE (Stocks)</h3>
+                        <div id="intel-display"></div>
+                    </div>
+                </div>
+
+                <div class="column-right panel">
+                    <h3 class="panel-title"><i class="fa-solid fa-list-check"></i> VOS ORDRES</h3>
+                    
+                    <div id="cartel-actions-panel" style="display:none;">
+                        <div id="cartel-stock-info" style="margin-bottom: 15px; color:#98c379; font-weight:bold;"></div>
+                        
+                        <div class="action-group">
+                            <h4>Action A : Économie (Obligatoire)</h4>
+                            <label class="radio-label"><input type="radio" name="actionA" value="produce_weapons" checked> Produire des Armes</label>
+                            <label class="radio-label"><input type="radio" name="actionA" value="produce_contraband"> Produire de la Contrebande</label>
+                            <label class="radio-label"><input type="radio" name="actionA" value="produce_data"> Produire des Données</label>
+                            <hr style="border-color:#3e332e; margin:10px 0;">
+                            <label class="radio-label"><input type="radio" name="actionA" value="sell_weapons"> 💰 VENDRE tout le stock d'Armes</label>
+                            <label class="radio-label"><input type="radio" name="actionA" value="sell_contraband"> 💰 VENDRE tout le stock de Contrebande</label>
+                            <label class="radio-label"><input type="radio" name="actionA" value="sell_data"> 💰 VENDRE tout le stock de Données</label>
+                        </div>
+
+                        <div class="action-group">
+                            <h4>Action B : Tactique (Obligatoire)</h4>
+                            <label class="radio-label"><input type="radio" name="actionB" value="boost" checked> Coup de Collier (+50% Prod. ce tour)</label>
+                            <label class="radio-label"><input type="radio" name="actionB" value="protect"> Milice (Protéger une ressource) :
+                                <select id="protect-target" style="width:auto; padding:5px; margin-left:10px;">
+                                    <option value="weapons">Armes</option><option value="contraband">Contrebande</option><option value="data">Données</option>
+                                </select>
+                            </label>
+                            <label class="radio-label"><input type="radio" name="actionB" value="heist"> Braquage (Voler un rival) :
+                                <select id="heist-target-player" style="width:auto; padding:5px; margin-left:10px;"></select>
+                                <select id="heist-target-res" style="width:auto; padding:5px; margin-left:5px;">
+                                    <option value="weapons">Armes</option><option value="contraband">Contrebande</option><option value="data">Données</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="action-group">
+                            <h4>Action C : Pot-de-vin au Politicien (Optionnel)</h4>
+                            <div id="bribe-reply-display" style="color:#e5c07b; margin-bottom:10px; font-style:italic;"></div>
+                            <input type="number" id="bribe-amount" placeholder="Montant en $ (ex: 50000)" min="0" step="5000">
+                            <input type="text" id="bribe-msg" placeholder="Votre demande (ex: N'attaque pas le port...)">
+                        </div>
+                    </div>
+
+                    <div id="politician-actions-panel" style="display:none;">
+                        <div class="action-group">
+                            <h4>Action A : Descente de Police</h4>
+                            <p style="font-size:12px; color:#a89f91; margin-bottom:10px;">Saisit les stocks des joueurs qui VENDENT sur cette route.</p>
+                            <label class="radio-label"><input type="radio" name="polActionA" value="none" checked> Ne rien faire (Garder profil bas)</label>
+                            <label class="radio-label"><input type="radio" name="polActionA" value="weapons" id="raid-weapons"> Raid à la Frontière (Armes)</label>
+                            <label class="radio-label"><input type="radio" name="polActionA" value="contraband" id="raid-contraband"> Raid au Port (Contrebande)</label>
+                            <label class="radio-label"><input type="radio" name="polActionA" value="data" id="raid-data"> Raid sur le Dark Web (Données)</label>
+                            <p id="raid-cooldown-msg" style="color:#d32f2f; font-size:13px; display:none; margin-top:5px;">Raid indisponible : la police se repose ce tour.</p>
+                        </div>
+
+                        <div class="action-group">
+                            <h4>Action B : Gérer les pots-de-vin</h4>
+                            <div id="incoming-bribes-container">
+                                <p style="font-size:13px; color:#a89f91;">En attente de la réception secrète...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-submit-turn" onclick="submitTurn()" class="btn-primary"><i class="fa-solid fa-check-double"></i> VALIDER MES ORDRES</button>
+                    
+                    <div id="wait-turn-msg" style="display:none; text-align:center; margin-top:15px; color:#e5c07b;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Ordres reçus. En attente des autres joueurs...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-results" class="screen">
+            <h2><i class="fa-solid fa-folder-open"></i> DOSSIER CLOS</h2>
+            <div class="divider"></div>
+            
+            <div id="stylized-leaderboard-container" class="stylized-leaderboard"></div>
+
+            <div class="divider" style="margin-top:40px;"></div>
+            <div style="display:flex; gap:15px;">
+                <a href="/leaderboards.html" class="btn-primary" style="text-decoration:none; display:block; text-align:center;"><i class="fa-solid fa-trophy"></i> Archives Mondiales</a>
+                <button onclick="window.location.reload()" class="btn-secondary"><i class="fa-solid fa-rotate-right"></i> Nouvelle Partie</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="cartel-client.js"></script>
+</body>
+</html>
