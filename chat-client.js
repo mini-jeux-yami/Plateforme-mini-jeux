@@ -65,7 +65,7 @@
                     return `
                         <li onclick="openChatWith('${u.username}')" class="${currentChatContact === u.username ? 'active-contact' : ''}">
                             <div class="chat-avatar-container">
-                                <img src="${u.profile_pic || 'https://via.placeholder.com/40/0ac8b9/000000'}" class="chat-avatar" onerror="this.onerror=null; this.src='https://via.placeholder.com/40/0ac8b9/000000';">
+                                <img src="${u.profile_pic || '/asset/default.png'}" class="chat-avatar" onerror="this.onerror=null; this.src='/asset/default.png';">
                                 <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
                             </div>
                             <span class="chat-username">${u.username}</span>

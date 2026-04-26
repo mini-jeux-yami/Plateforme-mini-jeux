@@ -37,7 +37,7 @@
         <div id="dashboard-section" class="screen">
             <div class="profile-header">
                 <div class="profile-info">
-                    <img id="user-avatar" src="/asset/default.png" alt="Avatar" class="avatar-large" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/0ac8b9/000000?text=?';">
+                    <img id="user-avatar" src="/asset/default.png" alt="Avatar" class="avatar-large" onerror="this.onerror=null; this.src='/asset/default.png';">
                     <div>
                         <h2>Bienvenue, <span id="user-name">Joueur</span></h2>
                         <button onclick="toggleProfileEdit()" class="btn-text"><i class="fa-solid fa-pen"></i> Modifier l'avatar</button>
@@ -93,7 +93,4 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+    <script src="/socket.io/socket.io.js"></script>

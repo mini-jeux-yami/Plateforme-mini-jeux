@@ -77,7 +77,7 @@
                             <li>
                                 <div class="player-info">
                                     <span class="rank-medal">${rankDisplay}</span>
-                                    <img src="${s.profile_pic || 'https://via.placeholder.com/35/0ac8b9/000000?text=?'}" class="avatar-small" onerror="this.onerror=null; this.src='https://via.placeholder.com/35/0ac8b9/000000?text=?';"> 
+                                    <img src="${s.profile_pic || '/asset/default.png'}" class="avatar-small" onerror="this.onerror=null; this.src='/asset/default.png';"> 
                                     ${s.username}
                                 </div>
                                 <span class="score-value">${s.wins} Victoire(s)</span>

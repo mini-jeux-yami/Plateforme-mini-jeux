@@ -105,7 +105,7 @@ socket.on('update_lobby', (data) => {
     const list = document.getElementById('player-list');
     list.innerHTML = data.players.map(p => `
         <li>
-            <img src="${p.profile_pic || 'https://via.placeholder.com/60/0ac8b9/000000?text=?'}" class="avatar" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/0ac8b9/000000?text=?';"> 
+            <img src="${p.profile_pic || '/asset/default.png'}" class="avatar" onerror="this.onerror=null; this.src='/asset/default.png';"> 
             <span style="${!p.isConnected ? 'color:red; text-decoration:line-through;' : ''}">${p.username}</span> &nbsp; // &nbsp; <span style="color:#0ac8b9;">Score : ${p.score}</span>
             ${p.isReady ? '<span style="color:#4caf50; margin-left:auto; font-weight:bold;"><i class="fa-solid fa-check"></i> Prêt</span>' : '<span style="color:#f44336; margin-left:auto;"><i class="fa-solid fa-hourglass"></i> Attente</span>'}
         </li>
@@ -230,7 +230,7 @@ socket.on('phase_results', async (data) => {
         return `
         <div class="recap-item">
             <div class="recap-header">
-                <img src="${detail.profile_pic || 'https://via.placeholder.com/30/0ac8b9/000000?text=?'}" class="avatar-small">
+                <img src="${detail.profile_pic || '/asset/default.png'}" class="avatar-small">
                 <strong>${detail.username}</strong> a gagné <strong>+${detail.points.total} pts</strong>
             </div>
             <div class="recap-body">
@@ -244,7 +244,7 @@ socket.on('phase_results', async (data) => {
     const lb = document.getElementById('leaderboard');
     lb.innerHTML = data.leaderboard.map((p, i) => `
         <li>
-            <span><i class="fa-solid fa-medal"></i> #${i+1} - <img src="${p.profile_pic || 'https://via.placeholder.com/60/0ac8b9/000000?text=?'}" class="avatar"> ${p.username}</span> 
+            <span><i class="fa-solid fa-medal"></i> #${i+1} - <img src="${p.profile_pic || '/asset/default.png'}" class="avatar"> ${p.username}</span> 
             <span>${p.score} pts</span>
         </li>
     `).join('');

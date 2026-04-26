@@ -110,7 +110,7 @@ socket.on('error', (msg) => { alert(msg); leaveRole(); });
 
 socket.on('update_lobby', (data) => {
     const cList = document.getElementById('cartel-list');
-    cList.innerHTML = data.cartels.map(p => `<li><img src="${p.profile_pic || 'https://via.placeholder.com/60/5d4037/000000?text=?'}" class="avatar"> <span style="${!p.isConnected ? 'color:#d32f2f; text-decoration:line-through;' : ''}">${p.username}</span></li>`).join('');
+    cList.innerHTML = data.cartels.map(p => `<li><img src="${p.profile_pic || '/asset/default.png'}" class="avatar"> <span style="${!p.isConnected ? 'color:#d32f2f; text-decoration:line-through;' : ''}">${p.username}</span></li>`).join('');
     
     for(let i = data.cartels.length; i < 3; i++) {
         cList.innerHTML += `<li><i class="fa-solid fa-user-secret" style="margin-right:15px; font-size:24px; color:#555;"></i> <span style="color:#555;">En attente d'un joueur...</span></li>`;
@@ -118,7 +118,7 @@ socket.on('update_lobby', (data) => {
 
     const pList = document.getElementById('politician-list');
     if (data.politician) {
-        pList.innerHTML = `<li><img src="${data.politician.profile_pic || 'https://via.placeholder.com/60/2e7d32/000000?text=?'}" class="avatar" style="border-color:#2e7d32;"> <span style="${!data.politician.isConnected ? 'color:#d32f2f; text-decoration:line-through;' : ''}">${data.politician.username}</span></li>`;
+        pList.innerHTML = `<li><img src="${data.politician.profile_pic || '/asset/default.png'}" class="avatar" style="border-color:#2e7d32;"> <span style="${!data.politician.isConnected ? 'color:#d32f2f; text-decoration:line-through;' : ''}">${data.politician.username}</span></li>`;
     } else {
         pList.innerHTML = `<li><i class="fa-solid fa-building-columns" style="margin-right:15px; font-size:24px; color:#555;"></i> <span style="color:#555;">En attente du MJ...</span></li>`;
     }
@@ -296,14 +296,14 @@ socket.on('game_ended', async (data) => {
     container.innerHTML = '';
 
     data.leaderboard.forEach((p, i) => {
-        let imgUrl = p.profile_pic || 'https://via.placeholder.com/120/5d4037/000000?text=?';
+        let imgUrl = p.profile_pic || '/asset/default.png';
 
         if (p.isWinner) {
             let wantedTitle = p.role === 'Politicien' ? "WANTED : EL PRESIDENTE" : "WANTED : EL PATRÓN";
             container.innerHTML += `
                 <div class="wanted-poster">
                     <div class="wanted-title">${wantedTitle}</div>
-                    <img src="${imgUrl}" class="mugshot" onerror="this.onerror=null; this.src='https://via.placeholder.com/120/5d4037/000000?text=?';">
+                    <img src="${imgUrl}" class="mugshot" onerror="this.onerror=null; this.src='/asset/default.png';">
                     <div class="wanted-name">${p.username}</div>
                     <div style="font-family:'Special Elite', cursive; margin-bottom:10px;">A remporté la guerre des Cartels</div>
                     <div class="wanted-bounty">Fortune : ${formatMoney(p.bank)} $</div>
@@ -314,7 +314,7 @@ socket.on('game_ended', async (data) => {
             container.innerHTML += `
                 <div class="dossier-entry">
                     <div class="dossier-info">
-                        <img src="${imgUrl}" class="dossier-mugshot" onerror="this.onerror=null; this.src='https://via.placeholder.com/50/5d4037/000000?text=?';">
+                        <img src="${imgUrl}" class="dossier-mugshot" onerror="this.onerror=null; this.src='/asset/default.png';">
                         <div class="dossier-text">
                             <h4>${p.username} (${p.role})</h4>
                             <p>Saisie : ${formatMoney(p.bank)} $</p>

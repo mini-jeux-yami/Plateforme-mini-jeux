@@ -108,7 +108,7 @@
         <!-- Bandeau profil plateforme (affiché si connecté) -->
         <div id="profileBanner" class="profile-banner hidden">
           <img id="lobbyAvatar" src="/asset/default.png" alt="Avatar"
-               onerror="this.src='https://via.placeholder.com/48/0a0316/00fff9?text=?'" class="lobby-avatar" />
+               onerror="this.src='/asset/default.png'" class="lobby-avatar" />
           <div class="profile-banner-info">
             <span id="lobbyUsername" class="profile-banner-name">—</span>
             <span class="profile-banner-badge">// OPÉRATEUR IDENTIFIÉ</span>
@@ -149,7 +149,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <img id="playerAvatar" src="/asset/default.png" alt=""
-             onerror="this.src='https://via.placeholder.com/32/0a0316/ff2bd6?text=?'"
+             onerror="this.src='/asset/default.png'"
              class="topbar-avatar" />
         <span class="chip chip-role">★ ESTIMATEUR</span>
         <span id="playerPseudo" class="pseudo">—</span>
@@ -257,7 +257,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <img id="gmAvatar" src="/asset/default.png" alt=""
-             onerror="this.src='https://via.placeholder.com/32/0a0316/00fff9?text=?'"
+             onerror="this.src='/asset/default.png'"
              class="topbar-avatar topbar-gm-avatar" />
         <span class="chip chip-role chip-gm">⚙ COMMISSAIRE</span>
         <span id="gmPseudo" class="pseudo">—</span>
@@ -304,38 +304,6 @@
             <p id="gmBonusBanner" class="bonus-banner hidden">⚡ OVERCLOCK ROUND // POINTS x2</p>
             <p id="gmTrainingReveal" class="training-banner hidden">🎓 Manche d'entraînement — points non comptabilisés</p>
             <table class="bids-table">
-              <thead>
-                <tr><th>HANDLE</th><th>ESTIMATION</th><th>ESSAIS</th><th>Δ</th><th>BONUS</th><th>CRED</th></tr>
-              </thead>
-              <tbody id="gmBidsBody"></tbody>
-            </table>
-
-            <h4 class="mini-title">// LEADERBOARD</h4>
-            <table id="gmStandings" class="standings-table">
-              <thead><tr><th>HANDLE</th><th>CRED</th></tr></thead>
-              <tbody></tbody>
-            </table>
-            <p id="gmRemaining" class="muted"></p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <section id="gmGameOver" class="center-card hidden">
-      <h2>// END.OF.LINE</h2>
-      <p class="subtitle">Transmission terminée — résultats finaux ci-dessous.</p>
-      <ol id="gmFinalScores" class="scoreboard"></ol>
-      <button id="restartBtn" class="btn btn-primary">⟲ NOUVELLE TRANSMISSION</button>
-    </section>
-
-  </section>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/anas/Enchere/frontend/js/app.js"></script>
-</body>
-</html>
-ass="bids-table">
               <thead>
                 <tr><th>HANDLE</th><th>ESTIMATION</th><th>ESSAIS</th><th>Δ</th><th>BONUS</th><th>CRED</th></tr>
               </thead>

@@ -31,7 +31,7 @@
 
   function avatarImg(profile_pic, cssClass, alt) {
     const src = escapeHtml(profile_pic || '/asset/default.png');
-    const fallback = `this.onerror=null;this.src='https://via.placeholder.com/32/0a0316/ff2bd6?text=?'`;
+    const fallback = `this.onerror=null;this.src='/asset/default.png'`;
     return `<img src="${src}" alt="${escapeHtml(alt || '')}" class="${cssClass}" onerror="${fallback}">`;
   }
 
@@ -623,7 +623,7 @@
       li.innerHTML = `
         <img src="${escapeHtml(p.profile_pic || '/asset/default.png')}" alt="${escapeHtml(p.pseudo)}"
              class="row-avatar"
-             onerror="this.onerror=null;this.src='https://via.placeholder.com/28/0a0316/ff2bd6?text=?'">
+             onerror="this.onerror=null;this.src='/asset/default.png'">
         <span class="dot ${dotClass}"></span>
         <span class="row-name">${escapeHtml(p.pseudo)}</span>
         <span class="row-points">${p.points || 0} pts</span>
@@ -689,84 +689,4 @@
     hide($resultModal);
     show($waitingRoom);
     $waitingList.innerHTML = '';
-    resetBidForm();
-    $playerPoints.textContent = '0';
-    hide($bonusBanner);
-    hide($trainingBanner);
-
-    show($gmLobby);
-    hide($gmMain);
-    hide($gmGameOver);
-    hide($revealedBids);
-    if ($gmBonusBanner) hide($gmBonusBanner);
-    if ($gmTrainingReveal) hide($gmTrainingReveal);
-    $playerBoard.innerHTML = '';
-    $lobbyList.innerHTML = '';
-  }
-
-  // ============================================================
-  // DÉMARRAGE : vérifier la session plateforme, puis afficher le lobby
-  // ============================================================
-
-  // En mode autoJoin (test via URL params), on skip la vérification
-  if (!app.autoJoin) {
-    initPlatformProfile();
-  }
-
-})();
-nalScores.innerHTML = '';
-    finalScores.forEach((s, i) => {
-      const li = document.createElement('li');
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-      li.innerHTML =
-        `${avatarImg(s.profile_pic, 'final-avatar', s.pseudo)}` +
-        `<strong>${medal} ${escapeHtml(s.pseudo)}</strong>` +
-        ` — <span class="score">${s.points || 0} pts</span>`;
-      $gmFinalScores.appendChild(li);
-    });
-  }
-
-  $startBtn    && $startBtn.addEventListener('click', () => app.socket.emit('startGame'));
-  $adjudicateBtn && $adjudicateBtn.addEventListener('click', () => app.socket.emit('adjudicate'));
-  $nextItemBtn && $nextItemBtn.addEventListener('click', () => app.socket.emit('nextItem'));
-  $resetBtn    && $resetBtn.addEventListener('click', () => {
-    if (confirm('Réinitialiser la partie ? Tous les joueurs seront renvoyés au lobby.'))
-      app.socket.emit('resetGame');
-  });
-  $restartBtn  && $restartBtn.addEventListener('click', () => app.socket.emit('resetGame'));
-
-  // ============================================================
-  // Reset complet de l'UI
-  // ============================================================
-
-  function resetAllUI() {
-    hide($auctionZone);
-    hide($playerGameOver);
-    hide($resultModal);
-    show($waitingRoom);
-    $waitingList.innerHTML = '';
-    resetBidForm();
-    $playerPoints.textContent = '0';
-    hide($bonusBanner);
-    hide($trainingBanner);
-
-    show($gmLobby);
-    hide($gmMain);
-    hide($gmGameOver);
-    hide($revealedBids);
-    if ($gmBonusBanner) hide($gmBonusBanner);
-    if ($gmTrainingReveal) hide($gmTrainingReveal);
-    $playerBoard.innerHTML = '';
-    $lobbyList.innerHTML = '';
-  }
-
-  // ============================================================
-  // DÉMARRAGE : vérifier la session plateforme, puis afficher le lobby
-  // ============================================================
-
-  // En mode autoJoin (test via URL params), on skip la vérification
-  if (!app.autoJoin) {
-    initPlatformProfile();
-  }
-
-})();
+    resetB
