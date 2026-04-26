@@ -20,8 +20,6 @@ function showMessage(elementId, text) {
 // ==========================================
 // APPELS FETCH (API)
 // ==========================================
-
-// 1. Vérifier si on est déjà connecté au chargement de la page
 async function checkAuth() {
     try {
         const response = await fetch('/api/me');
@@ -39,7 +37,6 @@ async function checkAuth() {
     }
 }
 
-// 2. Inscription
 document.getElementById('btn-register').addEventListener('click', async () => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
@@ -60,9 +57,8 @@ document.getElementById('btn-register').addEventListener('click', async () => {
     }
 });
 
-// 3. Connexion
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
-    e.preventDefault(); // Empêche la page de se rafraîchir
+    e.preventDefault(); 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
@@ -74,13 +70,12 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     const data = await response.json();
 
     if (data.success) {
-        checkAuth(); // Recharge le profil et affiche le dashboard
+        checkAuth(); 
     } else {
         showMessage('auth-error', data.message);
     }
 });
 
-// 4. Déconnexion
 async function logout() {
     await fetch('/api/logout', { method: 'POST' });
     document.getElementById('username').value = '';
@@ -88,7 +83,6 @@ async function logout() {
     checkAuth();
 }
 
-// 5. Modifier l'avatar
 async function updateProfilePic() {
     const newUrl = document.getElementById('new-avatar-url').value;
     if (!newUrl) return;
@@ -106,5 +100,30 @@ async function updateProfilePic() {
     }
 }
 
-// Lancement au démarrage
+async function uploadProfilePicFile() {
+    const fileInput = document.getElementById('avatar-upload-file');
+    if (fileInput.files.length === 0) return alert("Veuillez sélectionner une image.");
+
+    const formData = new FormData();
+    formData.append('avatarFile', fileInput.files[0]);
+
+    try {
+        const response = await fetch('/api/upload-avatar', {
+            method: 'POST',
+            body: formData 
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('user-avatar').src = data.profile_pic;
+            toggleProfileEdit();
+        } else {
+            alert("Erreur du serveur : " + data.message);
+        }
+    } catch (err) {
+        console.error("Erreur lors de l'upload", err);
+        alert("Impossible d'envoyer l'image. Le serveur a-t-il bien été redémarré ?");
+    }
+}
+
 checkAuth();
