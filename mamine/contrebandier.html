@@ -5,8 +5,28 @@
     <title>Le Contrebandier</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .stats-grid-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stat-card { background: rgba(0,0,0,0.6); border: 1px solid rgba(10, 200, 185, 0.3); border-radius: 8px; padding: 15px; text-align: center; }
+        .stat-card i { font-size: 24px; color: #ff00ea; margin-bottom: 10px; display: block; }
+        .stat-card h4 { font-size: 14px; color: #94a3b8; margin: 0 0 5px 0; }
+        .stat-card .stat-val { font-size: 24px; color: #0ac8b9; font-weight: bold; font-family: 'Space Grotesk', sans-serif; }
+        .stat-card .stat-player { font-size: 14px; color: #fff; margin-top: 5px; display: block; }
+    </style>
 </head>
 <body>
+    <div id="pause-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; justify-content:center; align-items:center; flex-direction:column; backdrop-filter:blur(10px);">
+        <i class="fa-solid fa-triangle-exclamation glitch-text" style="font-size: 60px; color:#ff4444; margin-bottom: 20px;"></i>
+        <h2 class="glitch-text" style="color:#ff4444;">ALERTE SYSTÈME : DÉCONNEXION</h2>
+        <p style="color:#fff; font-size:18px; margin-top: 10px;">En attente de la reconnexion de : <strong id="pause-missing-name" style="color:#0ac8b9; font-size:22px;"></strong></p>
+        <p style="color:#94a3b8; font-size:14px; margin-top: 10px;">La partie est en pause.</p>
+        
+        <div id="mj-pause-controls" style="display:none; margin-top:40px; text-align: center;">
+            <p style="color:#ff00ea; font-size:14px; margin-bottom:15px;">Actions du Maître du Jeu :</p>
+            <button class="btn-secondary" onclick="forceEndGame()" style="width:auto;"><i class="fa-solid fa-skull"></i> Annuler la partie définitivement</button>
+        </div>
+    </div>
+
     <div class="grid-3d"></div>
 
     <div id="app-container">
@@ -25,18 +45,24 @@
             <h2><i class="fa-brands fa-hubspot"></i> NEXUS - SALLE D'ATTENTE</h2>
             <ul id="player-list"></ul>
             
+            <div id="player-controls" style="display: none; margin-top: 20px;">
+                <button id="btn-ready" class="btn-secondary" onclick="toggleReady()"><i class="fa-solid fa-check"></i> JE SUIS PRÊT</button>
+            </div>
+
             <div id="mj-controls" style="display: none;" class="mj-panel">
-                <h3><i class="fa-solid fa-terminal"></i> Lancer la Manche</h3>
-                <input type="text" id="mj-question" placeholder="Base de données (La question)...">
-                <input type="text" id="mj-true" placeholder="La VÉRITÉ absolue">
-                <input type="text" id="mj-lie" placeholder="TON paquet de données corrompu (Mensonge)">
-                <button class="btn-mj" onclick="mjStartRound()"><i class="fa-solid fa-upload"></i> Lancer l'extraction !</button>
+                <h3><i class="fa-solid fa-sliders"></i> Configuration (Wizard)</h3>
+                <div class="input-container">
+                    <label style="color:#0ac8b9; display:block; margin-bottom:5px;">Nombre de manches exact :</label>
+                    <input type="number" id="wizard-rounds" min="1" max="50" value="5" style="background: rgba(0,0,0,0.5); color:#fff; border: 1px solid #0ac8b9; padding: 10px; width: 100%; border-radius: 8px;">
+                </div>
+                <button id="btn-mj-start-wizard" class="btn-primary" onclick="mjStartWizard()" disabled><i class="fa-solid fa-play"></i> Démarrer la préparation</button>
+                <p style="font-size: 12px; color: #94a3b8; margin-top:10px;">Tous les joueurs doivent être "Prêt" pour lancer.</p>
                 
                 <div class="divider" style="margin: 20px 0;"></div>
                 
                 <h3><i class="fa-solid fa-wrench"></i> Forcer les Scores de la session</h3>
                 <div class="score-edit-grid" id="mj-score-grid"></div>
-                <button class="btn-primary" onclick="mjUpdateScores()"><i class="fa-solid fa-sync"></i> Mettre à jour les scores</button>
+                <button class="btn-secondary" onclick="mjUpdateScores()"><i class="fa-solid fa-sync"></i> Mettre à jour les scores</button>
             </div>
             
             <div id="wait-msg-container">
@@ -46,6 +72,16 @@
 
             <div class="divider"></div>
             <button onclick="leaveRole()" class="btn-text"><i class="fa-solid fa-arrow-left"></i> Changer de rôle</button>
+        </div>
+
+        <div id="screen-mj-prep" class="screen">
+            <div class="question-box">
+                <h2><i class="fa-solid fa-pen-nib"></i> PRÉPARATION DE LA DONNÉE</h2>
+            </div>
+            <p class="instruction">Saisissez la question et la vérité absolue avant que les joueurs n'inventent leurs mensonges.</p>
+            <div class="input-container"><input type="text" id="mj-prep-question" placeholder="La Question (ex: En quelle année...)"></div>
+            <div class="input-container"><input type="text" id="mj-prep-true" placeholder="La Vraie Réponse (ex: 1998)"></div>
+            <button onclick="mjSubmitQA()" class="btn-primary"><i class="fa-solid fa-forward"></i> Valider et passer à l'écriture</button>
         </div>
 
         <div id="screen-writing" class="screen">
@@ -64,7 +100,7 @@
         <div id="screen-voting" class="screen">
             <div class="question-box"><h2 id="vote-question"></h2></div>
             <div id="player-voting-area">
-                <p class="instruction"><i class="fa-solid fa-eye"></i> Isolez la vérité. Dénoncez les anomalies.</p>
+                <p class="instruction"><i class="fa-solid fa-eye"></i> Isolez la vérité. Dénoncez les anomalies. (Votre mensonge est caché).</p>
                 <div id="answers-container"></div>
                 <button onclick="submitVotes()" id="btn-submit-votes" class="btn-primary"><i class="fa-solid fa-lock"></i> Verrouiller</button>
             </div>
@@ -90,8 +126,8 @@
             <ul id="leaderboard"></ul>
             
             <div id="mj-next-btn" style="display:none; display:flex; gap: 15px; margin-top: 20px;">
-                <button class="btn-mj" onclick="nextRound()"><i class="fa-solid fa-forward-step"></i> Manche suivante</button>
-                <button class="btn-secondary" onclick="endGame()"><i class="fa-solid fa-trophy"></i> Terminer la partie</button>
+                <button id="btn-next-round" class="btn-mj" onclick="nextRound()"><i class="fa-solid fa-forward-step"></i> Manche suivante</button>
+                <button id="btn-end-game" class="btn-secondary" onclick="endGame()"><i class="fa-solid fa-trophy"></i> Terminer la partie</button>
             </div>
         </div>
 
@@ -101,6 +137,8 @@
             <p id="wait-subtitle" class="instruction"></p>
             
             <div id="victory-podium-container" style="display: none; margin: 20px auto; max-width: 500px; text-align: left;"></div>
+            
+            <div id="stats-dashboard-container" style="display: none; width: 100%; margin-top: 30px;"></div>
 
             <a href="/leaderboards.html" id="btn-to-leaderboards" class="btn-leaderboard" style="display: none; margin-top: 20px;">Aller voir le classement mondial</a>
         </div>
@@ -108,5 +146,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
+    <script src="/chat-client.js"></script>
 </body>
 </html>

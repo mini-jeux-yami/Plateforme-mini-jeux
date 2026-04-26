@@ -17,46 +17,88 @@ async function initGame() {
     try {
         const response = await fetch('/api/me');
         const data = await response.json();
-        
         if (data.loggedIn) {
             myUser = data.user;
             document.getElementById('display-username').innerText = myUser.username;
-        } else {
-            window.location.href = '/'; 
-        }
-    } catch (err) {
-        window.location.href = '/';
-    }
+        } else window.location.href = '/'; 
+    } catch (err) { window.location.href = '/'; }
 }
 initGame();
 
+// ==========================================
+// ANTI-DÉCONNEXION (PAUSE / REPRISE)
+// ==========================================
+socket.on('game_paused', (data) => {
+    document.getElementById('pause-overlay').style.display = 'flex';
+    document.getElementById('pause-missing-name').innerText = data.missingPlayer;
+    if (myRole === 'politician') document.getElementById('mj-pause-controls').style.display = 'block';
+});
+
+socket.on('game_resumed', () => {
+    document.getElementById('pause-overlay').style.display = 'none';
+});
+
+socket.on('sync_state', (state) => {
+    document.getElementById('pause-overlay').style.display = 'none';
+    currentPhase = 'ingame';
+    
+    if (myRole === 'cartel') {
+        document.getElementById('role-badge').innerText = "RÔLE : CARTEL";
+        document.getElementById('cartel-actions-panel').style.display = 'block';
+        document.getElementById('politician-actions-panel').style.display = 'none';
+        document.getElementById('politician-intel-panel').style.display = 'none';
+    } else {
+        document.getElementById('role-badge').innerText = "RÔLE : POLITICIEN";
+        document.getElementById('role-badge').style.background = "#2e7d32";
+        document.getElementById('cartel-actions-panel').style.display = 'none';
+        document.getElementById('politician-actions-panel').style.display = 'block';
+        document.getElementById('politician-intel-panel').style.display = 'block';
+    }
+    showScreen('screen-game');
+    
+    // On simule une réception de début de tour pour tout redessiner proprement
+    socket.emit('get_private_info');
+    document.getElementById('display-turn').innerText = state.turn;
+    
+    let marketHtml = '';
+    for(let key in state.market) {
+        let m = state.market[key];
+        let icon = key === 'weapons' ? 'gun' : (key === 'contraband' ? 'box' : 'laptop-code');
+        marketHtml += `<div class="market-item"><span><i class="fa-solid fa-${icon}"></i> ${m.name}</span> <span>${formatMoney(m.currentPrice)} $</span></div>`;
+    }
+    document.getElementById('market-display').innerHTML = marketHtml;
+    document.getElementById('log-display').innerHTML = state.logs.map(l => `<div class="log-entry">${l}</div>`).join('');
+});
+
+socket.on('game_ended_force', () => {
+    document.getElementById('pause-overlay').style.display = 'none';
+    alert("Le Politicien a ordonné l'annulation de la partie suite à un abandon.");
+    window.location.reload();
+});
+
+function forceEndGame() {
+    if(confirm("Toutes les données de la partie seront perdues. Êtes-vous sûr ?")) socket.emit('force_kill_game');
+}
+// ==========================================
+
 function joinAsCartel() {
-    myRole = 'cartel';
-    currentPhase = 'lobby';
-    history.pushState({ screen: 'lobby' }, '', '#lobby'); 
+    myRole = 'cartel'; currentPhase = 'lobby'; history.pushState({ screen: 'lobby' }, '', '#lobby'); 
     socket.emit('join_as_cartel', { username: myUser.username, profile_pic: myUser.profile_pic }); 
     showScreen('screen-lobby');
 }
 
 function joinAsPolitician() {
-    myRole = 'politician';
-    currentPhase = 'lobby';
-    history.pushState({ screen: 'lobby' }, '', '#lobby'); 
+    myRole = 'politician'; currentPhase = 'lobby'; history.pushState({ screen: 'lobby' }, '', '#lobby'); 
     socket.emit('join_as_politician', { username: myUser.username, profile_pic: myUser.profile_pic }); 
     showScreen('screen-lobby');
     document.getElementById('mj-controls').style.display = 'block';
 }
 
-function leaveRole() {
-    history.back(); 
-}
+function leaveRole() { history.back(); }
 
 window.addEventListener('popstate', (event) => {
     if (currentPhase === 'lobby' && myRole !== '') {
-        socket.emit('leave_role');
-        myRole = '';
-        currentPhase = 'role';
-        showScreen('screen-role');
+        socket.emit('leave_role'); myRole = ''; currentPhase = 'role'; showScreen('screen-role');
         document.getElementById('mj-controls').style.display = 'none';
     } else if (currentPhase === 'ingame') {
         history.pushState({ screen: 'ingame' }, '', '#ingame'); 
@@ -68,7 +110,7 @@ socket.on('error', (msg) => { alert(msg); leaveRole(); });
 
 socket.on('update_lobby', (data) => {
     const cList = document.getElementById('cartel-list');
-    cList.innerHTML = data.cartels.map(p => `<li><img src="${p.profile_pic || 'https://via.placeholder.com/60/5d4037/000000?text=?'}" class="avatar" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/5d4037/000000?text=?';"> ${p.username}</li>`).join('');
+    cList.innerHTML = data.cartels.map(p => `<li><img src="${p.profile_pic || 'https://via.placeholder.com/60/5d4037/000000?text=?'}" class="avatar"> <span style="${!p.isConnected ? 'color:#d32f2f; text-decoration:line-through;' : ''}">${p.username}</span></li>`).join('');
     
     for(let i = data.cartels.length; i < 3; i++) {
         cList.innerHTML += `<li><i class="fa-solid fa-user-secret" style="margin-right:15px; font-size:24px; color:#555;"></i> <span style="color:#555;">En attente d'un joueur...</span></li>`;
@@ -76,23 +118,18 @@ socket.on('update_lobby', (data) => {
 
     const pList = document.getElementById('politician-list');
     if (data.politician) {
-        pList.innerHTML = `<li><img src="${data.politician.profile_pic || 'https://via.placeholder.com/60/2e7d32/000000?text=?'}" class="avatar" style="border-color:#2e7d32;" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/2e7d32/000000?text=?';"> ${data.politician.username}</li>`;
+        pList.innerHTML = `<li><img src="${data.politician.profile_pic || 'https://via.placeholder.com/60/2e7d32/000000?text=?'}" class="avatar" style="border-color:#2e7d32;"> <span style="${!data.politician.isConnected ? 'color:#d32f2f; text-decoration:line-through;' : ''}">${data.politician.username}</span></li>`;
     } else {
         pList.innerHTML = `<li><i class="fa-solid fa-building-columns" style="margin-right:15px; font-size:24px; color:#555;"></i> <span style="color:#555;">En attente du MJ...</span></li>`;
     }
 
-    if (myRole === 'politician') {
-        document.getElementById('btn-start-game').disabled = !data.canStart;
-    }
+    if (myRole === 'politician') document.getElementById('btn-start-game').disabled = !data.canStart;
 });
 
-function startGame() {
-    socket.emit('start_game');
-}
+function startGame() { socket.emit('start_game'); }
 
 socket.on('game_started', () => {
-    currentPhase = 'ingame';
-    history.pushState({ screen: 'ingame' }, '', '#ingame'); 
+    currentPhase = 'ingame'; history.pushState({ screen: 'ingame' }, '', '#ingame'); 
     showScreen('screen-game');
 
     if (myRole === 'cartel') {
@@ -112,7 +149,6 @@ socket.on('game_started', () => {
 socket.on('turn_start', (state) => {
     document.getElementById('btn-submit-turn').style.display = 'block';
     document.getElementById('wait-turn-msg').style.display = 'none';
-
     document.getElementById('display-turn').innerText = state.turn;
     
     let marketHtml = '';
@@ -122,7 +158,6 @@ socket.on('turn_start', (state) => {
         marketHtml += `<div class="market-item"><span><i class="fa-solid fa-${icon}"></i> ${m.name}</span> <span>${formatMoney(m.currentPrice)} $</span></div>`;
     }
     document.getElementById('market-display').innerHTML = marketHtml;
-
     document.getElementById('log-display').innerHTML = state.logs.map(l => `<div class="log-entry">${l}</div>`).join('');
 
     socket.emit('get_private_info');
@@ -233,7 +268,7 @@ function submitTurn() {
         let bribeAmt = parseInt(document.getElementById('bribe-amount').value) || 0;
         let actC = { amount: bribeAmt, question: document.getElementById('bribe-msg').value };
 
-        socket.emit('submit_cartel_actions', { a: actA, b: actB, c: actC });
+        socket.emit('submit_cartel_actions', { actions: { a: actA, b: actB, c: actC } });
 
     } else if (myRole === 'politician') {
         let raidTarget = document.querySelector('input[name="polActionA"]:checked').value;
@@ -253,9 +288,6 @@ function submitTurn() {
     }
 }
 
-// ==========================================
-// FIN DE PARTIE (LE NOUVEAU CLASSEMENT)
-// ==========================================
 socket.on('game_ended', async (data) => {
     currentPhase = 'lobby'; 
     history.pushState({ screen: 'lobby' }, '', '#lobby');
@@ -267,7 +299,6 @@ socket.on('game_ended', async (data) => {
         let imgUrl = p.profile_pic || 'https://via.placeholder.com/120/5d4037/000000?text=?';
 
         if (p.isWinner) {
-            // Le vainqueur a droit au "Wanted Poster"
             let wantedTitle = p.role === 'Politicien' ? "WANTED : EL PRESIDENTE" : "WANTED : EL PATRÓN";
             container.innerHTML += `
                 <div class="wanted-poster">
@@ -279,7 +310,6 @@ socket.on('game_ended', async (data) => {
                 </div>
             `;
         } else {
-            // Les perdants ont droit à un dossier "ÉCHEC"
             let stamp = p.role === 'Politicien' ? "DESTITUÉ" : "DÉMANTELÉ";
             container.innerHTML += `
                 <div class="dossier-entry">
@@ -298,15 +328,11 @@ socket.on('game_ended', async (data) => {
 
     showScreen('screen-results');
 
-    // Sauvegarde automatique de la victoire
     if (data.winners.includes(myUser.username)) {
         await fetch('/api/add-victory', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                game_name: 'El Cartel', 
-                game_url: '/imad/cartel.html' 
-            })
+            body: JSON.stringify({ game_name: 'El Cartel', game_url: '/imad/cartel.html' })
         });
     }
 });

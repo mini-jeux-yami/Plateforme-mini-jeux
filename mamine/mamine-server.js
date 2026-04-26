@@ -2,166 +2,266 @@ module.exports = function(io) {
     const mamineIo = io.of('/mamine');
 
     let gamePlayers = {}; 
-    let mjSocketId = null;
-    let currentRound = { question: "", trueAnswer: "", mjLie: "", playerLies: {}, votes: {}, allAnswers: [] };
-    let inGameScores = {}; 
-
-    function startVotingPhase() {
-        let answers = [currentRound.trueAnswer, currentRound.mjLie, ...Object.values(currentRound.playerLies)];
-        currentRound.allAnswers = answers.sort(() => Math.random() - 0.5); 
-        let authorsList = Object.values(gamePlayers).map(p => ({ id: p.id, name: p.username }));
-        authorsList.push({ id: 'MJ', name: 'Le Maître du Jeu' });
-        mamineIo.emit('phase_voting', { question: currentRound.question, answers: currentRound.allAnswers, authors: authorsList });
-    }
-
-    function calculateScoresAndEndRound() {
-        let roundDetails = [];
-
-        for (let playerId in currentRound.votes) {
-            let player = gamePlayers[playerId];
-            if (!player) continue;
-
-            let vote = currentRound.votes[playerId];
-            let ptsTruth = 0, ptsTrap = 0, ptsGuess = 0, ptsBonus = 0;
-
-            if (vote.selectedTruth === currentRound.trueAnswer) ptsTruth += 2;
-
-            let myLie = currentRound.playerLies[playerId];
-            let victimsCount = 0;
-            for (let otherId in currentRound.votes) {
-                if (otherId !== playerId && currentRound.votes[otherId].selectedTruth === myLie) {
-                    ptsTrap += 2; victimsCount++;
-                }
-            }
-
-            let correctGuesses = 0;
-            let totalFalseAnswers = Object.keys(currentRound.playerLies).length + 1;
-
-            for (let ans in vote.guesses) {
-                if (vote.guesses[ans] === getAuthorOfAnswer(ans)) correctGuesses++;
-            }
-
-            ptsGuess = correctGuesses;
-            if (correctGuesses === totalFalseAnswers) ptsBonus = 1;
-
-            let roundTotal = ptsTruth + ptsTrap + ptsGuess + ptsBonus;
-            player.score += roundTotal;
-            inGameScores[player.username] = player.score; 
-
-            roundDetails.push({
-                username: player.username, profile_pic: player.profile_pic, votedFor: vote.selectedTruth, myLie: myLie, victims: victimsCount,
-                points: { truth: ptsTruth, trap: ptsTrap, guess: ptsGuess, bonus: ptsBonus, total: roundTotal }
-            });
-        }
-
-        mamineIo.emit('phase_results', { 
-            leaderboard: Object.values(gamePlayers).sort((a, b) => b.score - a.score), 
-            trueAnswer: currentRound.trueAnswer, mjLie: currentRound.mjLie, roundDetails: roundDetails       
-        });
-    }
-
-    function getAuthorOfAnswer(answer) {
-        if (answer === currentRound.mjLie) return 'MJ';
-        for (let id in currentRound.playerLies) { if (currentRound.playerLies[id] === answer) return id; }
-        return null;
-    }
+    // On ajoute un trackeur de stat pour le MJ
+    let mjData = { socketId: null, username: null, isConnected: false, stats: { victims: 0 } };
+    
+    let isGameRunning = false;
+    let currentPhaseServer = 'lobby'; 
+    let gameSettings = { rounds: 5 }; 
+    let currentRoundNumber = 1; 
+    let currentRound = { question: "", trueAnswer: "", mjLie: "", mjLieSubmitted: false, playerLies: {}, votes: {}, allAnswers: [] };
 
     mamineIo.on('connection', (socket) => {
         
         socket.on('join_as_player', (user) => {
-            if (inGameScores[user.username] === undefined) inGameScores[user.username] = 0;
-            gamePlayers[socket.id] = { 
-                id: socket.id, username: user.username, profile_pic: user.profile_pic, score: inGameScores[user.username] 
-            };
-            mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: !!mjSocketId, scoresDb: inGameScores });
-        });
-
-        socket.on('join_as_mj', () => {
-            mjSocketId = socket.id;
-            mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: true, scoresDb: inGameScores });
-        });
-
-        socket.on('leave_role', () => {
-            if (gamePlayers[socket.id]) {
-                delete gamePlayers[socket.id];
-                mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: !!mjSocketId, scoresDb: inGameScores });
-            }
-            if (socket.id === mjSocketId) {
-                mjSocketId = null;
-                mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: false, scoresDb: inGameScores });
-            }
-        });
-
-        socket.on('disconnect', () => {
-            if (gamePlayers[socket.id]) {
-                delete gamePlayers[socket.id];
-                mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: !!mjSocketId, scoresDb: inGameScores });
-            }
-            if (socket.id === mjSocketId) {
-                mjSocketId = null;
-                mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: false, scoresDb: inGameScores });
-            }
-        });
-
-        socket.on('mj_force_scores', (newScores) => {
-            for (let username in newScores) {
-                inGameScores[username] = newScores[username];
-                for(let id in gamePlayers) {
-                    if (gamePlayers[id].username === username) {
-                        gamePlayers[id].score = newScores[username];
-                    }
+            if (isGameRunning) {
+                if (gamePlayers[user.username]) {
+                    gamePlayers[user.username].socketId = socket.id;
+                    gamePlayers[user.username].isConnected = true;
+                    mamineIo.emit('game_resumed');
+                    socket.emit('sync_state', { phase: currentPhaseServer, round: currentRound, roundNumber: currentRoundNumber, totalRounds: gameSettings.rounds });
+                    return;
+                } else {
+                    return socket.emit('error', "Une partie est déjà en cours, vous ne pouvez pas la rejoindre.");
                 }
             }
-            mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: !!mjSocketId, scoresDb: inGameScores });
+
+            gamePlayers[user.username] = { 
+                socketId: socket.id, username: user.username, profile_pic: user.profile_pic, 
+                score: 0, isReady: false, isConnected: true,
+                stats: { victims: 0, truths: 0, perfects: 0 } // NOUVEAU : Tracking des stats
+            };
+            broadcastLobby();
         });
 
-        socket.on('mj_setup_round', (data) => {
-            currentRound = { question: data.question, trueAnswer: data.trueAnswer, mjLie: data.mjLie, playerLies: {}, votes: {}, allAnswers: [] };
-            mamineIo.emit('phase_writing_players', { question: data.question });
+        socket.on('join_as_mj', (user) => {
+            if (isGameRunning && mjData.username === user.username) {
+                mjData.socketId = socket.id;
+                mjData.isConnected = true;
+                mamineIo.emit('game_resumed');
+                socket.emit('sync_state', { phase: currentPhaseServer, round: currentRound, roundNumber: currentRoundNumber, totalRounds: gameSettings.rounds });
+                return;
+            }
+
+            mjData = { socketId: socket.id, username: user.username, isConnected: true, stats: { victims: 0 } };
+            broadcastLobby();
         });
 
-        socket.on('submit_lie', (lie) => {
-            currentRound.playerLies[socket.id] = lie;
-            if (Object.keys(currentRound.playerLies).length >= Object.keys(gamePlayers).length) startVotingPhase();
+        socket.on('toggle_ready', () => {
+            const user = getUserBySocket(socket.id);
+            if (user && user.role === 'player') {
+                gamePlayers[user.username].isReady = !gamePlayers[user.username].isReady;
+                broadcastLobby();
+            }
         });
+
+        socket.on('leave_role', handleDisconnect);
+        socket.on('disconnect', handleDisconnect);
+
+        function handleDisconnect() {
+            const user = getUserBySocket(socket.id);
+            if (!user) return;
+
+            if (isGameRunning) {
+                if (user.role === 'player') gamePlayers[user.username].isConnected = false;
+                if (user.role === 'mj') mjData.isConnected = false;
+                mamineIo.emit('game_paused', { missingPlayer: user.username });
+            } else {
+                if (user.role === 'player') delete gamePlayers[user.username];
+                if (user.role === 'mj') mjData = { socketId: null, username: null, isConnected: false, stats: { victims: 0 } };
+                broadcastLobby();
+            }
+        }
+
+        function getUserBySocket(socketId) {
+            if (mjData.socketId === socketId) return { role: 'mj', username: mjData.username };
+            for (let uname in gamePlayers) {
+                if (gamePlayers[uname].socketId === socketId) return { role: 'player', username: uname };
+            }
+            return null;
+        }
+
+        function broadcastLobby() {
+            mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: !!mjData.socketId });
+        }
+
+        socket.on('mj_force_scores', (newScores) => {
+            for (let uname in newScores) {
+                if (gamePlayers[uname]) gamePlayers[uname].score = newScores[uname];
+            }
+            broadcastLobby();
+        });
+
+        socket.on('mj_start_wizard', (settings) => {
+            isGameRunning = true;
+            currentPhaseServer = 'prep';
+            gameSettings = settings;
+            currentRoundNumber = 1; 
+            mamineIo.emit('phase_mj_preparing'); 
+        });
+
+        socket.on('mj_submit_q_a', (data) => {
+            currentPhaseServer = 'writing';
+            currentRound = { question: data.question, trueAnswer: data.trueAnswer, mjLie: "", mjLieSubmitted: false, playerLies: {}, votes: {}, allAnswers: [] };
+            mamineIo.emit('phase_writing_all', { question: data.question, currentRoundNumber: currentRoundNumber, totalRounds: gameSettings.rounds }); 
+        });
+
+        socket.on('submit_mj_lie', (lie) => {
+            currentRound.mjLie = lie;
+            currentRound.mjLieSubmitted = true;
+            checkAllLiesSubmitted();
+        });
+
+        socket.on('submit_lie', (data) => {
+            currentRound.playerLies[data.username] = data.lie;
+            checkAllLiesSubmitted();
+        });
+
+        function checkAllLiesSubmitted() {
+            if (currentRound.mjLieSubmitted && Object.keys(currentRound.playerLies).length >= Object.keys(gamePlayers).length) {
+                currentPhaseServer = 'voting';
+                let answers = [currentRound.trueAnswer, currentRound.mjLie, ...Object.values(currentRound.playerLies)];
+                currentRound.allAnswers = answers.sort(() => Math.random() - 0.5); 
+                let authorsList = Object.values(gamePlayers).map(p => ({ id: p.username, name: p.username })); 
+                authorsList.push({ id: 'MJ', name: 'Le Maître du Jeu' });
+                
+                mamineIo.emit('phase_voting', { question: currentRound.question, answers: currentRound.allAnswers, authors: authorsList, playerLies: currentRound.playerLies });
+            }
+        }
 
         socket.on('submit_votes', (data) => {
-            currentRound.votes[socket.id] = data;
+            currentRound.votes[data.username] = data.voteData;
             if (Object.keys(currentRound.votes).length >= Object.keys(gamePlayers).length) calculateScoresAndEndRound();
         });
 
         socket.on('trigger_next_round', () => {
-            mamineIo.emit('update_lobby', { players: Object.values(gamePlayers), mjReady: true, scoresDb: inGameScores });
+            currentRoundNumber++;
+            currentPhaseServer = 'lobby';
+            Object.values(gamePlayers).forEach(p => p.isReady = false);
+            broadcastLobby();
             mamineIo.emit('go_to_lobby');
         });
 
         socket.on('trigger_end_game', () => {
+            isGameRunning = false;
+            currentPhaseServer = 'lobby';
             let maxScore = -1;
             let winners = [];
-            
-            for (let id in gamePlayers) {
-                if (gamePlayers[id].score > maxScore) {
-                    maxScore = gamePlayers[id].score;
-                    winners = [gamePlayers[id].username];
-                } else if (gamePlayers[id].score === maxScore && maxScore > 0) {
-                    winners.push(gamePlayers[id].username); 
+            for (let uname in gamePlayers) {
+                if (gamePlayers[uname].score > maxScore) {
+                    maxScore = gamePlayers[uname].score;
+                    winners = [uname];
+                } else if (gamePlayers[uname].score === maxScore && maxScore > 0) {
+                    winners.push(uname); 
                 }
             }
-
-            // MODIFICATION ICI : On tire au sort entre 1 et 5
             const randomWinGif = `win${Math.floor(Math.random() * 5) + 1}.gif`;
-            
             const finalLeaderboard = Object.values(gamePlayers).sort((a, b) => b.score - a.score);
+            
+            // Compilation des statistiques pour l'envoi
+            let matchStats = {
+                players: Object.values(gamePlayers).map(p => ({
+                    username: p.username, profile_pic: p.profile_pic, score: p.score,
+                    victims: p.stats.victims, truths: p.stats.truths, perfects: p.stats.perfects
+                })),
+                mj: { username: mjData.username, victims: mjData.stats.victims }
+            };
 
-            mamineIo.emit('game_ended', { 
-                winners: winners, 
-                finalLeaderboard: finalLeaderboard,
-                winGif: randomWinGif 
-            });
+            mamineIo.emit('game_ended', { winners: winners, finalLeaderboard: finalLeaderboard, winGif: randomWinGif, matchStats: matchStats });
 
-            inGameScores = {};
-            for(let id in gamePlayers) gamePlayers[id].score = 0;
-            currentRound = { question: "", trueAnswer: "", mjLie: "", playerLies: {}, votes: {}, allAnswers: [] };
+            // Reset pour la prochaine partie
+            currentRoundNumber = 1;
+            for(let uname in gamePlayers) { 
+                gamePlayers[uname].score = 0; 
+                gamePlayers[uname].isReady = false; 
+                gamePlayers[uname].stats = { victims: 0, truths: 0, perfects: 0 };
+            }
+            if (mjData) mjData.stats.victims = 0;
+            currentRound = { question: "", trueAnswer: "", mjLie: "", mjLieSubmitted: false, playerLies: {}, votes: {}, allAnswers: [] };
         });
+
+        socket.on('force_kill_game', () => {
+            isGameRunning = false;
+            currentPhaseServer = 'lobby';
+            currentRoundNumber = 1;
+            for(let uname in gamePlayers) { 
+                gamePlayers[uname].score = 0; 
+                gamePlayers[uname].isReady = false; 
+                gamePlayers[uname].stats = { victims: 0, truths: 0, perfects: 0 };
+            }
+            if (mjData) mjData.stats.victims = 0;
+            currentRound = { question: "", trueAnswer: "", mjLie: "", mjLieSubmitted: false, playerLies: {}, votes: {}, allAnswers: [] };
+            mamineIo.emit('game_ended_force');
+        });
+
+        function calculateScoresAndEndRound() {
+            currentPhaseServer = 'results';
+            let roundDetails = [];
+            for (let uname in currentRound.votes) {
+                let player = gamePlayers[uname];
+                if (!player) continue;
+
+                let vote = currentRound.votes[uname];
+                let ptsTruth = 0, ptsTrap = 0, ptsGuess = 0, ptsBonus = 0;
+
+                // Stat: A trouvé la vérité
+                if (vote.selectedTruth === currentRound.trueAnswer) {
+                    ptsTruth += 2;
+                    player.stats.truths++;
+                }
+
+                // Stat: Le MJ fait des victimes
+                if (vote.selectedTruth === currentRound.mjLie) {
+                    mjData.stats.victims++;
+                }
+
+                let myLie = currentRound.playerLies[uname];
+                let victimsCount = 0;
+                for (let otherUname in currentRound.votes) {
+                    if (otherUname !== uname && currentRound.votes[otherUname].selectedTruth === myLie) {
+                        ptsTrap += 2; victimsCount++;
+                    }
+                }
+                
+                // Stat: Le joueur fait des victimes
+                player.stats.victims += victimsCount;
+
+                let correctGuesses = 0;
+                let totalFalseAnswers = Object.keys(currentRound.playerLies).length + 1;
+
+                for (let ans in vote.guesses) {
+                    if (vote.guesses[ans] === getAuthorOfAnswer(ans)) correctGuesses++;
+                }
+
+                ptsGuess = correctGuesses;
+                
+                // Stat: Profilage parfait
+                if (correctGuesses === totalFalseAnswers && totalFalseAnswers > 0) {
+                    ptsBonus = 1;
+                    player.stats.perfects++;
+                }
+
+                let roundTotal = ptsTruth + ptsTrap + ptsGuess + ptsBonus;
+                player.score += roundTotal;
+
+                roundDetails.push({
+                    username: player.username, profile_pic: player.profile_pic, votedFor: vote.selectedTruth, myLie: myLie, victims: victimsCount,
+                    points: { truth: ptsTruth, trap: ptsTrap, guess: ptsGuess, bonus: ptsBonus, total: roundTotal }
+                });
+            }
+            
+            let isLastRound = currentRoundNumber >= gameSettings.rounds;
+
+            mamineIo.emit('phase_results', { 
+                leaderboard: Object.values(gamePlayers).sort((a, b) => b.score - a.score), 
+                trueAnswer: currentRound.trueAnswer, mjLie: currentRound.mjLie, roundDetails: roundDetails, isLastRound: isLastRound
+            });
+        }
+
+        function getAuthorOfAnswer(answer) {
+            if (answer === currentRound.mjLie) return 'MJ';
+            for (let uname in currentRound.playerLies) { if (currentRound.playerLies[uname] === answer) return uname; }
+            return null;
+        }
     });
 };
