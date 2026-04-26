@@ -177,8 +177,4 @@ module.exports = function (io) {
       // Diffuse l'état mis à jour si on est encore en phase lobby
       const state = gameLogic.getPublicState();
       if (state.phase === 'lobby') {
-              enchereIo.emit('stateUpdate', { state });
-      }
-    });
-  });
-};
+      

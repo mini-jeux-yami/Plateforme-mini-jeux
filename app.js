@@ -27,7 +27,7 @@ async function checkAuth() {
         
         if (data.loggedIn) {
             document.getElementById('user-name').innerText = data.user.username;
-            document.getElementById('user-avatar').src = data.user.profile_pic || 'https://via.placeholder.com/60/0ac8b9/000000?text=?';
+            document.getElementById('user-avatar').src = data.user.profile_pic || '/asset/default.png';
             showScreen('dashboard-section');
         } else {
             showScreen('auth-section');
